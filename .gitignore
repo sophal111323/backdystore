@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Production
+*.tsbuildinfo
+next-env.d.ts
+
+# Misc
+.DS_Store
+*.pem
+.vscode/
+.idea/
+
+# Env files
+.env
+.env*.local
+.env.production
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Prisma
+/prisma/*.db
+/prisma/*.db-journal
+
+# User-uploaded images (admin panel)
+# Keep folder structure but ignore actual uploaded images in git
+/public/uploads/*
+/public/uploads/*.png
+/public/uploads/*.jpg
+/public/uploads/*.jpeg
+/public/uploads/*.webp
+/public/uploads/*.gif
+/public/uploads/*.svg
+!/public/uploads/.gitkeep
+
+# Local env (redundant safety — .env is already ignored above)
+.env.local
+node_modules/
+.next/
+
+# Security: dangerous admin utility scripts should not be in version control
+2fa.mjs
+reset.ts
+reset-totp.ts
+setup-totp.js
+curl.exe
+npx

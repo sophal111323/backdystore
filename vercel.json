@@ -1,0 +1,15 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "crons": [
+    {
+      "path": "/api/cron/daily-report",
+      "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/cron/cloudflare-alert",
+      "schedule": "5 17 * * *"
+    }
+  ]
+}

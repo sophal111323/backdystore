@@ -1,0 +1,40 @@
+PASS | Flutter import paths exist | 0 missing imports
+PASS | Core file exists: jasmin_dashboard/pubspec.yaml
+PASS | Core file exists: jasmin_dashboard/lib/main.dart
+PASS | Core file exists: jasmin_dashboard/lib/app.dart
+PASS | Core file exists: jasmin_dashboard/lib/core/network/api_client.dart
+PASS | Core file exists: jasmin_dashboard/lib/core/network/auth_interceptor.dart
+PASS | Core file exists: jasmin_dashboard/lib/core/storage/secure_token_storage.dart
+PASS | Core file exists: jasmin_dashboard/lib/core/routing/app_router.dart
+PASS | Required backend API route files exist
+PASS | No backend secret names in Flutter Dart/YAML | []
+PASS | Flutter Bearer token interceptor present
+PASS | Flutter 401 handling present
+PASS | Flutter route /login mapped
+PASS | Flutter route /two-factor mapped
+PASS | Flutter route /dashboard mapped
+PASS | Flutter route /orders mapped
+PASS | Flutter route /products mapped
+PASS | Flutter route /games mapped
+PASS | Flutter route /banners mapped
+PASS | Flutter route /settings mapped
+PASS | Flutter route /faqs mapped
+PASS | Flutter route /customers mapped
+PASS | Flutter route /promo-codes mapped
+PASS | Flutter route /audit-logs mapped
+PASS | Flutter route /notifications mapped
+PASS | Prisma model AdminLoginChallenge exists
+PASS | Prisma model AdminSession exists
+PASS | Prisma model Notification exists
+PASS | Prisma model AuditLog exists
+PASS | Prisma model Game exists
+PASS | Prisma model Product exists
+PASS | Prisma model Order exists
+PASS | Prisma model PromoCode exists
+PASS | Prisma model Faq exists
+PASS | Prisma model HeroBanner exists
+PASS | Prisma model Settings exists
+PASS | Rough balanced delimiters for .dart
+PASS | Rough balanced delimiters for .ts
+PASS | Rough balanced delimiters for .tsx
+SUMMARY | 39/39 passed
