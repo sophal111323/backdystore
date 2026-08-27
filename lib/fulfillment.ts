@@ -22,6 +22,10 @@ export interface FulfillmentResult {
   status?: string;
 }
 
+export interface FulfillOptions {
+  silentTelegram?: boolean;
+}
+
 function manualReviewMessage(
   title: string,
   orderNumber: string,
@@ -44,7 +48,10 @@ function manualReviewMessage(
   );
 }
 
-export async function fulfillPaidOrder(orderNumber: string): Promise<FulfillmentResult> {
+export async function fulfillPaidOrder(
+  orderNumber: string,
+  options?: FulfillOptions
+): Promise<FulfillmentResult> {
   const order = await prisma.order.findUnique({
     where: { orderNumber },
     include: { game: true, product: true },
@@ -111,16 +118,18 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
   }
 
   if (!order.product.supplierCode) {
-    await notifyTelegram(
-      manualReviewMessage(
-        "🔔 <b>Manual topup required</b>",
-        order.orderNumber,
-        order.game.name,
-        order.product.name,
-        order.playerUid,
-        `(${order.product.name} has no ${supplier.displayName} product code / package ID)`
-      )
-    );
+    if (!options?.silentTelegram) {
+      await notifyTelegram(
+        manualReviewMessage(
+          "🔔 <b>Manual topup required</b>",
+          order.orderNumber,
+          order.game.name,
+          order.product.name,
+          order.playerUid,
+          `(${order.product.name} has no ${supplier.displayName} product code / package ID)`
+        )
+      );
+    }
 
     return {
       success: false,
@@ -189,16 +198,18 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
         },
       });
 
-      await notifyTelegram(
-        manualReviewMessage(
-          `✅ <b>Auto topup DELIVERED (${escapeHtml(supplier.displayName)})</b>`,
-          order.orderNumber,
-          order.game.name,
-          order.product.name,
-          order.playerUid,
-          `${escapeHtml(supplier.displayName)} ref: <code>${escapeHtml(transactionRef)}</code>`
-        )
-      );
+      if (!options?.silentTelegram) {
+        await notifyTelegram(
+          manualReviewMessage(
+            `✅ <b>Auto topup DELIVERED (${escapeHtml(supplier.displayName)})</b>`,
+            order.orderNumber,
+            order.game.name,
+            order.product.name,
+            order.playerUid,
+            `${escapeHtml(supplier.displayName)} ref: <code>${escapeHtml(transactionRef)}</code>`
+          )
+        );
+      }
 
       return {
         success: true,
@@ -217,16 +228,18 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
         },
       });
 
-      await notifyTelegram(
-        manualReviewMessage(
-          `⏳ <b>Topup PROCESSING (${escapeHtml(supplier.displayName)})</b>`,
-          order.orderNumber,
-          order.game.name,
-          order.product.name,
-          order.playerUid,
-          `${escapeHtml(supplier.displayName)} ref: <code>${escapeHtml(transactionRef)}</code> (processing)`
-        )
-      );
+      if (!options?.silentTelegram) {
+        await notifyTelegram(
+          manualReviewMessage(
+            `⏳ <b>Topup PROCESSING (${escapeHtml(supplier.displayName)})</b>`,
+            order.orderNumber,
+            order.game.name,
+            order.product.name,
+            order.playerUid,
+            `${escapeHtml(supplier.displayName)} ref: <code>${escapeHtml(transactionRef)}</code> (processing)`
+          )
+        );
+      }
 
       return {
         success: true,
@@ -248,16 +261,18 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
       },
     });
 
-    await notifyTelegram(
-      manualReviewMessage(
-        "⏳ <b>Topup pending verification</b>",
-        order.orderNumber,
-        order.game.name,
-        order.product.name,
-        order.playerUid,
-        `${supplier.displayName} timed out. Use Refresh Status — do NOT create a new top-up.`
-      )
-    );
+    if (!options?.silentTelegram) {
+      await notifyTelegram(
+        manualReviewMessage(
+          "⏳ <b>Topup pending verification</b>",
+          order.orderNumber,
+          order.game.name,
+          order.product.name,
+          order.playerUid,
+          `${supplier.displayName} timed out. Use Refresh Status — do NOT create a new top-up.`
+        )
+      );
+    }
 
     return {
       success: false,
@@ -278,16 +293,18 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
     },
   });
 
-  await notifyTelegram(
-    manualReviewMessage(
-      `⚠️ <b>Auto topup FAILED (${escapeHtml(supplier.displayName)}) — process manually</b>`,
-      order.orderNumber,
-      order.game.name,
-      order.product.name,
-      order.playerUid,
-      `Error: ${escapeHtml(topupResult.error ?? "unknown")}`
-    )
-  );
+  if (!options?.silentTelegram) {
+    await notifyTelegram(
+      manualReviewMessage(
+        `⚠️ <b>Auto topup FAILED (${escapeHtml(supplier.displayName)}) — process manually</b>`,
+        order.orderNumber,
+        order.game.name,
+        order.product.name,
+        order.playerUid,
+        `Error: ${escapeHtml(topupResult.error ?? "unknown")}`
+      )
+    );
+  }
 
   return {
     success: false,
