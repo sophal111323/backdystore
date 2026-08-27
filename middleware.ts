@@ -5,14 +5,11 @@ import { jwtVerify } from "jose";
 const SESSION_COOKIE = "admin_token";
 
 const ADMIN_HOME_PATH = "/admin";
-const ADMIN_LOGIN_PATH = process.env.ADMIN_LOGIN_PATH || "/admin/sophallogin";
+// Secret login URL — change anytime via ADMIN_LOGIN_PATH in .env, no code needed.
+const ADMIN_LOGIN_PATH = process.env.ADMIN_LOGIN_PATH || "/admin/dystore";
+// Physical page route — never exposed; secret URLs are rewritten here internally.
+const INTERNAL_LOGIN_ROUTE = "/admin/dystore";
 const HONEY_PATH = "/admin/login";
-
-const LOGIN_PATHS = new Set([
-  ADMIN_LOGIN_PATH,
-  "/admin/login",
-  "/admin/sophallogin",
-]);
 
 // ✅ Valid admin routes — unknown paths will NOT reveal the real login URL
 const VALID_ADMIN_PREFIXES = [
@@ -29,7 +26,6 @@ const VALID_ADMIN_PREFIXES = [
   "/admin/security",
   "/admin/settings",
   "/admin/login",
-  "/admin/sophallogin",
 ];
 
 function isValidAdminPath(pathname: string): boolean {
@@ -293,13 +289,20 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
     return nextResponse();
   }
 
-  // ✅ Login pages
-  if (LOGIN_PATHS.has(pathname)) {
+  // ✅ Secret login URL (from env) — rewritten internally to the real page.
+  // Direct visits to the internal route are NOT whitelisted, so they fall
+  // through and get redirected to the honeypot instead of revealing anything.
+  if (pathname === ADMIN_LOGIN_PATH) {
     if (isLoggedIn) {
       return redirectResponse(new URL(ADMIN_HOME_PATH, req.url));
     }
 
-    return nextResponse();
+    return addSecurityHeaders(
+      NextResponse.rewrite(new URL(INTERNAL_LOGIN_ROUTE, req.url)),
+      cspHeader,
+      nonce,
+      isProduction
+    );
   }
 
   // ✅ Honeypot page

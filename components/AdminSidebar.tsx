@@ -36,7 +36,13 @@ function getActiveIndex(pathname: string | null, optimisticHref: string | null) 
   return nestedIndex === -1 ? 0 : nestedIndex;
 }
 
-export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
+export default function AdminSidebar({
+  adminEmail,
+  loginPath = "/admin/dystore",
+}: {
+  adminEmail: string;
+  loginPath?: string;
+}) {
   const pathname = usePathname();
   const [optimisticHref, setOptimisticHref] = useState<string | null>(null);
 
@@ -60,21 +66,17 @@ export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
         className="relative z-10 border-b border-pink-200/90 px-5 py-5 transition-all duration-300 hover:bg-white/45"
       >
         <div className="flex items-center gap-3 rounded-2xl bg-white/55 p-3 shadow-sm shadow-pink-200/60 ring-1 ring-pink-200/80 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-pink-200/70">
-          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-white p-1 shadow-inner shadow-pink-100 ring-2 ring-pink-200">
-            <Image
-              src="/jasmintopup-logo.png"
-              alt="JASMINTOPUP Logo"
-              width={48}
-              height={48}
-              className="h-full w-full rounded-xl object-contain"
-              priority
-            />
-            <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 via-white/30 to-pink-200/20" />
-          </div>
-
+          <Image
+            src="/jasmintopup-logo.png"
+            alt="DyTopup Logo"
+            width={64}
+            height={48}
+            className="h-11 w-auto object-contain drop-shadow"
+            priority
+          />
           <div className="min-w-0 leading-tight">
             <div className="truncate font-display text-[15px] font-black tracking-wide text-pink-900">
-              JASMIN<span className="text-pink-500">TOPUP</span>
+              Dy<span className="text-pink-500">Topup</span>
             </div>
             <div className="mt-1 text-[10px] font-extrabold uppercase tracking-[0.24em] text-pink-500">
               Admin Panel
@@ -137,7 +139,7 @@ export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
             {adminEmail}
           </div>
           <div className="mt-3 border-t border-pink-200 pt-3">
-            <LogoutButton />
+            <LogoutButton redirectTo={loginPath} />
           </div>
         </div>
       </div>

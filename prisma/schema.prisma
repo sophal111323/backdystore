@@ -55,6 +55,7 @@ model Product {
   imageUrl     String?
   active       Boolean  @default(true)
   sortOrder    Int      @default(0)
+  supplier     String   @default("bay2game")
   supplierCode String?
   orders       Order[]
   createdAt    DateTime @default(now())
@@ -89,13 +90,14 @@ model Order {
   ipAddress        String?
   userAgent        String?
 
-  // ── Game top-up provider (Bay2Game) ─────────────────────────────────────
+  // ── Game top-up provider (Bay2Game / Khmer TopUp) ──────────────────────────
   // topupProviderRef stores the unique reference sent to the provider
   // (= orderNumber). The @unique constraint is a DB-level guarantee against
   // duplicate top-ups for the same order.
   topupProvider    String?
   topupProviderRef String?    @unique
   topupStatus      String?
+  supplierResponse String?
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
   paidAt           DateTime?

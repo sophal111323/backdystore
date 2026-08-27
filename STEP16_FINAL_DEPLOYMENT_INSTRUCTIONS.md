@@ -1,8 +1,8 @@
-> **âš ï¸ OBSOLETE (payment sections):** This document predates the migration from KHPay to Tola Saint.
+﻿> **Ã¢Å¡ Ã¯Â¸ OBSOLETE (payment sections):** This document predates the migration from KHPay to Tola Saint.
 > Any KHPay configuration in this file is no longer valid. See DEPLOY.md and README.md for the
 > current Tola Saint setup (https://tolasaint.com/docs).
 
-# Step 16 — Final Deployment Instructions
+# Step 16 â€” Final Deployment Instructions
 
 This step explains how to run, build, and deploy the full JASMINTOPUP system with the connected Flutter admin app `JASMIN_DASHBOARD`.
 
@@ -127,7 +127,7 @@ Open:
 
 ```txt
 http://localhost:3000
-http://localhost:3000/admin/sophallogin
+http://localhost:3000/admin/dystore
 ```
 
 The seed requires:
@@ -186,7 +186,7 @@ Do not include a trailing slash in `JASMIN_API_BASE_URL`.
 
 ## 6. Deploy website/backend to Vercel
 
-### Step 1 — Push project to GitHub
+### Step 1 â€” Push project to GitHub
 
 ```bash
 git init
@@ -197,13 +197,13 @@ git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
 git push -u origin main
 ```
 
-### Step 2 — Create database
+### Step 2 â€” Create database
 
 Use Neon PostgreSQL or another PostgreSQL provider.
 
 Copy the production connection string and keep `sslmode=require`.
 
-### Step 3 — Add project to Vercel
+### Step 3 â€” Add project to Vercel
 
 1. Open Vercel.
 2. Import your GitHub repository.
@@ -212,7 +212,7 @@ Copy the production connection string and keep `sslmode=require`.
 5. Install command: default or `npm install`.
 6. Output directory: default.
 
-### Step 4 — Add environment variables in Vercel
+### Step 4 â€” Add environment variables in Vercel
 
 Add at least:
 
@@ -242,7 +242,7 @@ ADMIN_PASSWORD=YourStrongPassword123!
 
 After the first admin is created, you can remove `ADMIN_PASSWORD` from production env if you do not need to seed again.
 
-### Step 5 — Migrate database
+### Step 5 â€” Migrate database
 
 Preferred safe method from your PC:
 
@@ -258,7 +258,7 @@ DATABASE_URL="your-production-postgres-url" npx prisma db push
 DATABASE_URL="your-production-postgres-url" npm run db:seed
 ```
 
-### Step 6 — Deploy
+### Step 6 â€” Deploy
 
 Click Deploy in Vercel, or push to GitHub after env variables are set.
 
@@ -266,7 +266,7 @@ After deployment, test:
 
 ```txt
 https://www.jasmintopup.site
-https://www.jasmintopup.site/admin/sophallogin
+https://www.jasmintopup.site/admin/dystore
 https://www.jasmintopup.site/api/settings/public
 https://www.jasmintopup.site/api/public/version?scope=home
 ```

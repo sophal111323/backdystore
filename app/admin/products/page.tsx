@@ -90,16 +90,17 @@ export default function AdminProductsPage() {
                 <th className="text-right px-5 py-3">Bonus</th>
                 <th className="text-right px-5 py-3">Price USD</th>
                 <th className="text-left px-5 py-3">Badge</th>
-                <th className="text-left px-5 py-3">Supplier Code</th>
+                <th className="text-left px-5 py-3">Supplier</th>
+                <th className="text-left px-5 py-3">Supplier Code / ID</th>
                 <th className="text-center px-5 py-3">Active</th>
                 <th className="text-right px-5 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-fox-border">
               {loading ? (
-                <tr><td colSpan={9} className="px-5 py-12 text-center text-fox-muted">Loading...</td></tr>
+                <tr><td colSpan={10} className="px-5 py-12 text-center text-fox-muted">Loading...</td></tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan={9} className="px-5 py-16 text-center">
+                <tr><td colSpan={10} className="px-5 py-16 text-center">
                     <div className="text-4xl mb-3">💎</div>
                     <p className="text-fox-muted mb-1">No products yet</p>
                     <p className="text-xs text-fox-muted/60 mb-3">Add packages for customers to purchase.</p>
@@ -114,10 +115,23 @@ export default function AdminProductsPage() {
                     <td className="px-5 py-3 text-right font-mono text-fox-accent">{p.bonus > 0 ? `+${p.bonus}` : "—"}</td>
                     <td className="px-5 py-3 text-right font-mono text-fox-primary">${p.priceUsd.toFixed(2)}</td>
                     <td className="px-5 py-3 text-xs">{p.badge || "—"}</td>
+                    <td className="px-5 py-3 text-xs">
+                      {p.supplier === "khmer_topup" ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          Khmer TopUp
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                          Bay2Game
+                        </span>
+                      )}
+                    </td>
                     <td className="px-5 py-3 text-xs font-mono">
-                      {p.supplierCode
-                        ? <span className="text-green-400">{p.supplierCode}</span>
-                        : <span className="text-yellow-400">⚠️ not set</span>}
+                      {p.supplierCode ? (
+                        <span className="text-green-400 font-semibold">{p.supplierCode}</span>
+                      ) : (
+                        <span className="text-yellow-400">⚠️ not set</span>
+                      )}
                     </td>
                     <td className="px-5 py-3 text-center">
                       <button onClick={() => toggleActive(p)}>
@@ -152,7 +166,8 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
     imageUrl: initial?.imageUrl || "",
     active: initial?.active ?? true,
     sortOrder: initial?.sortOrder ?? 0,
-    supplierCode: initial?.supplierCode || "",  // ✅ FIX 1: added to state
+    supplier: initial?.supplier || "bay2game",
+    supplierCode: initial?.supplierCode || "",
   });
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -170,7 +185,8 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
       sortOrder: Number(form.sortOrder),
       badge: form.badge || null,
       imageUrl: form.imageUrl || null,
-      supplierCode: form.supplierCode || null,  // ✅ FIX 2: added to payload
+      supplier: form.supplier || "bay2game",
+      supplierCode: form.supplierCode || null,
     };
     const url = initial ? `/api/admin/products/${initial.id}` : "/api/admin/products";
     const method = initial ? "PATCH" : "POST";
@@ -188,9 +204,16 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
     onSaved();
   }
 
+  const isKhmerTopup = form.supplier === "khmer_topup";
+
   return (
     <form onSubmit={save} className="card p-6 mb-6">
       <h3 className="font-semibold text-lg mb-4">{initial ? "Edit Product" : "New Product"}</h3>
+      {error && (
+        <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+          {error}
+        </div>
+      )}
       <div className="grid md:grid-cols-3 gap-4 mb-4">
         <div className="md:col-span-3">
           <label className="label">Game</label>
@@ -226,17 +249,40 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
           <input className="input" value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} />
         </div>
 
-        {/* ✅ FIX 3: Supplier Code input field */}
+        {/* Supplier / API Provider Selection */}
+        <div>
+          <label className="label">Supplier / API Provider</label>
+          <select
+            className="input"
+            value={form.supplier}
+            onChange={(e) => setForm({ ...form, supplier: e.target.value })}
+          >
+            <option value="bay2game">Bay2Game</option>
+            <option value="khmer_topup">Khmer TopUp</option>
+          </select>
+        </div>
+
+        {/* Dynamic Supplier Code / Package ID input */}
         <div className="md:col-span-2">
-          <label className="label">Supplier Code (Bay2Game product_code) — required for auto delivery</label>
+          <label className="label">
+            {isKhmerTopup ? "Khmer TopUp Package ID" : "Bay2Game Product Code"} — required for auto delivery
+          </label>
           <input
             className="input font-mono"
-            placeholder="e.g. FF_100_DIA, FF_WEEKLY_PASS"
+            placeholder={isKhmerTopup ? "e.g. 268" : "e.g. FF_100_DIA, FF_WEEKLY_PASS"}
             value={form.supplierCode}
             onChange={(e) => setForm({ ...form, supplierCode: e.target.value })}
           />
-          {!form.supplierCode && (
-            <p className="mt-1 text-xs text-yellow-400">⚠️ Without this, diamonds will NOT be sent automatically after payment.</p>
+          {!form.supplierCode ? (
+            <p className="mt-1 text-xs text-yellow-400">
+              ⚠️ Without this {isKhmerTopup ? "Package ID" : "Product Code"}, top-up will NOT be sent automatically after payment.
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-fox-muted">
+              {isKhmerTopup
+                ? "This numeric package_id will be sent to the Khmer TopUp API upon order completion."
+                : "This product_code will be sent to the Bay2Game API upon order completion."}
+            </p>
           )}
         </div>
 

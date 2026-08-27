@@ -1,7 +1,7 @@
 // lib/fulfillment.ts
 //
 // Game top-up fulfillment. Runs ONLY after an order is PAID:
-//   PAID -> PROCESSING -> Bay2Game /create_order -> DELIVERED
+//   PAID -> PROCESSING -> Supplier create_order (Bay2Game / Khmer TopUp) -> DELIVERED
 //
 // IDEMPOTENCY RULES (prevents duplicate top-ups / real financial loss):
 //   • An order that already has topupProviderRef NEVER creates a new top-up.
@@ -11,7 +11,7 @@
 //     We never blindly retry creation.
 
 import { prisma } from "@/lib/prisma";
-import { createTopup, getTopupStatus } from "@/lib/topup";
+import { getSupplier, getTopupStatus } from "@/lib/topup";
 import { notifyTelegram, escapeHtml } from "@/lib/telegram";
 
 export interface FulfillmentResult {
@@ -21,8 +21,6 @@ export interface FulfillmentResult {
   transactionId?: string;
   status?: string;
 }
-
-const PROVIDER_NAME = "bay2game";
 
 function manualReviewMessage(
   title: string,
@@ -71,10 +69,14 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
     return { success: false, skipped: true, status: `not_paid:${order.status}` };
   }
 
+  // Resolve supplier dynamically based on product configuration
+  const supplierName = (order.product?.supplier || order.topupProvider || "bay2game").toLowerCase();
+  const supplier = getSupplier(supplierName);
+
   // ── Idempotency guard #1: this order already has a provider transaction ──
-  // A DEFINITE failure (topupStatus === "failed") means Bay2Game rejected the
+  // A DEFINITE failure (topupStatus === "failed") means the provider rejected the
   // creation — nothing was delivered. It is safe to re-attempt using the SAME
-  // reference (Bay2Game references are unique, so a duplicate delivery is
+  // reference (references are unique, so a duplicate delivery is
   // impossible). Unknown/pending outcomes must only be status-checked.
   if (order.topupProviderRef && order.topupStatus !== "failed") {
     return refreshTopupStatus(orderNumber);
@@ -84,16 +86,18 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
     // Previous attempt failed definitively. Double-check the provider before
     // creating again — if the first attempt actually succeeded we must NOT
     // create a second top-up.
-    const remote = await getTopupStatus(order.topupProviderRef);
-    if (remote.found && remote.status === "success") {
+    const remote = await getTopupStatus(order.topupProviderRef, order.topupProvider || supplier.name);
+    if (remote.found && (remote.status === "success" || remote.status === "completed")) {
+      const rawResp = remote.rawResponse ? JSON.stringify(remote.rawResponse) : null;
       await prisma.order.updateMany({
         where: { id: order.id, status: { in: ["PROCESSING", "PAID"] } },
         data: {
           status: "DELIVERED",
           deliveredAt: new Date(),
-          deliveryNote: `Auto-delivered via Bay2Game. Ref: ${remote.transactionId ?? order.topupProviderRef}`,
+          deliveryNote: `Auto-delivered via ${supplier.displayName}. Ref: ${remote.transactionId ?? order.topupProviderRef}`,
           failureReason: null,
           topupStatus: "success",
+          supplierResponse: rawResp,
         },
       });
       return { success: true, transactionId: remote.transactionId, status: "success" };
@@ -114,14 +118,14 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
         order.game.name,
         order.product.name,
         order.playerUid,
-        "(Product has no supplier code)"
+        `(${order.product.name} has no ${supplier.displayName} product code / package ID)`
       )
     );
 
     return {
       success: false,
       skipped: true,
-      error: "Product has no supplierCode",
+      error: `Product has no supplierCode for ${supplier.displayName}`,
     };
   }
 
@@ -136,7 +140,7 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
     },
     data: {
       status: "PROCESSING",
-      deliveryNote: "Auto topup is being processed via Bay2Game.",
+      deliveryNote: `Auto topup is being processed via ${supplier.displayName}.`,
     },
   });
 
@@ -146,63 +150,101 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
 
   const reference = order.orderNumber;
 
-  const topupResult = await createTopup({
-    reference,
+  const topupResult = await supplier.createOrder({
+    orderReference: reference,
     productCode: order.product.supplierCode,
-    userId: order.playerUid,
-    zoneId: order.serverId ?? undefined,
+    playerId: order.playerUid,
+    serverId: order.serverId ?? undefined,
   });
+
+  const transactionRef = topupResult.transactionId || reference;
+  const rawResp = topupResult.rawResponse ? JSON.stringify(topupResult.rawResponse) : null;
 
   // Record the provider reference immediately — even on failure/unknown —
   // so no later run can ever create a second transaction for this order.
   await prisma.order.update({
     where: { id: order.id },
     data: {
-      topupProvider: PROVIDER_NAME,
-      topupProviderRef: reference,
-      topupStatus: topupResult.success ? "success" : topupResult.unknown ? "pending" : "failed",
+      topupProvider: supplier.name,
+      topupProviderRef: transactionRef,
+      topupStatus: topupResult.success
+        ? (topupResult.status === "completed" || topupResult.status === "success" ? "success" : "pending")
+        : (topupResult.unknown ? "pending" : "failed"),
+      supplierResponse: rawResp,
     },
   });
 
   if (topupResult.success) {
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        status: "DELIVERED",
-        deliveredAt: new Date(),
-        deliveryNote: `Auto-delivered via Bay2Game. Ref: ${topupResult.transactionId ?? "N/A"}`,
-        failureReason: null,
-        topupStatus: "success",
-      },
-    });
+    const isInstantComplete = topupResult.status === "completed" || topupResult.status === "success";
 
-    await notifyTelegram(
-      manualReviewMessage(
-        "✅ <b>Auto topup DELIVERED</b>",
-        order.orderNumber,
-        order.game.name,
-        order.product.name,
-        order.playerUid,
-        `Bay2Game ref: <code>${escapeHtml(topupResult.transactionId ?? "N/A")}</code>`
-      )
-    );
+    if (isInstantComplete) {
+      await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          status: "DELIVERED",
+          deliveredAt: new Date(),
+          deliveryNote: `Auto-delivered via ${supplier.displayName}. Ref: ${transactionRef}`,
+          failureReason: null,
+          topupStatus: "success",
+        },
+      });
 
-    return {
-      success: true,
-      transactionId: topupResult.transactionId,
-      status: topupResult.status,
-    };
+      await notifyTelegram(
+        manualReviewMessage(
+          `✅ <b>Auto topup DELIVERED (${escapeHtml(supplier.displayName)})</b>`,
+          order.orderNumber,
+          order.game.name,
+          order.product.name,
+          order.playerUid,
+          `${escapeHtml(supplier.displayName)} ref: <code>${escapeHtml(transactionRef)}</code>`
+        )
+      );
+
+      return {
+        success: true,
+        transactionId: transactionRef,
+        status: "success",
+      };
+    } else {
+      // Async processing (e.g. Khmer TopUp status === "processing")
+      await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          status: "PROCESSING",
+          deliveryNote: `Top-up submitted to ${supplier.displayName} (processing). Ref: ${transactionRef}`,
+          failureReason: null,
+          topupStatus: "pending",
+        },
+      });
+
+      await notifyTelegram(
+        manualReviewMessage(
+          `⏳ <b>Topup PROCESSING (${escapeHtml(supplier.displayName)})</b>`,
+          order.orderNumber,
+          order.game.name,
+          order.product.name,
+          order.playerUid,
+          `${escapeHtml(supplier.displayName)} ref: <code>${escapeHtml(transactionRef)}</code> (processing)`
+        )
+      );
+
+      return {
+        success: true,
+        transactionId: transactionRef,
+        status: "processing",
+      };
+    }
   }
 
   if (topupResult.unknown) {
     // Network timeout — outcome UNKNOWN at the provider. Do NOT revert to
     // PAID and do NOT retry creation; leave PROCESSING for a later status
-    // check against /check_order.
+    // check against checkOrder.
     await prisma.order.update({
       where: { id: order.id },
       data: {
         deliveryNote:
-          "Bay2Game did not respond in time. Outcome unknown — checking existing transaction before any retry.",
+          `${supplier.displayName} did not respond in time. Outcome unknown — checking existing transaction before any retry.`,
       },
     });
 
@@ -213,7 +255,7 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
         order.game.name,
         order.product.name,
         order.playerUid,
-        "Bay2Game timed out. Use Refresh Status — do NOT create a new top-up."
+        `${supplier.displayName} timed out. Use Refresh Status — do NOT create a new top-up.`
       )
     );
 
@@ -231,14 +273,14 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
     where: { id: order.id },
     data: {
       status: "PAID",
-      failureReason: `Auto topup failed: ${topupResult.error ?? "unknown"}`,
-      deliveryNote: "Auto topup failed. Please process this order manually.",
+      failureReason: `Auto topup failed (${supplier.displayName}): ${topupResult.error ?? "unknown"}`,
+      deliveryNote: `Auto topup failed via ${supplier.displayName}. Please process this order manually.`,
     },
   });
 
   await notifyTelegram(
     manualReviewMessage(
-      "⚠️ <b>Auto topup FAILED — process manually</b>",
+      `⚠️ <b>Auto topup FAILED (${escapeHtml(supplier.displayName)}) — process manually</b>`,
       order.orderNumber,
       order.game.name,
       order.product.name,
@@ -254,7 +296,7 @@ export async function fulfillPaidOrder(orderNumber: string): Promise<Fulfillment
 }
 
 /**
- * Re-check an existing Bay2Game transaction via /check_order and update the
+ * Re-check an existing provider transaction via checkOrder and update the
  * local order accordingly. NEVER creates a new top-up.
  */
 export async function refreshTopupStatus(orderNumber: string): Promise<FulfillmentResult> {
@@ -274,12 +316,19 @@ export async function refreshTopupStatus(orderNumber: string): Promise<Fulfillme
     return { success: true, skipped: true, status: "already_delivered" };
   }
 
-  const remote = await getTopupStatus(reference);
+  const supplierName = (order.topupProvider || order.product?.supplier || "bay2game").toLowerCase();
+  const supplier = getSupplier(supplierName);
+
+  const remote = await getTopupStatus(reference, supplier.name);
+  const rawResp = remote.rawResponse ? JSON.stringify(remote.rawResponse) : null;
 
   if (!remote.found) {
     await prisma.order.update({
       where: { id: order.id },
-      data: { topupStatus: "pending" },
+      data: {
+        topupStatus: "pending",
+        ...(rawResp ? { supplierResponse: rawResp } : {}),
+      },
     });
     return {
       success: false,
@@ -289,27 +338,28 @@ export async function refreshTopupStatus(orderNumber: string): Promise<Fulfillme
     };
   }
 
-  if (remote.status === "success") {
+  if (remote.status === "success" || remote.status === "completed") {
     const updated = await prisma.order.updateMany({
       where: { id: order.id, status: { in: ["PROCESSING", "PAID"] } },
       data: {
         status: "DELIVERED",
         deliveredAt: new Date(),
-        deliveryNote: `Auto-delivered via Bay2Game. Ref: ${remote.transactionId ?? reference}`,
+        deliveryNote: `Auto-delivered via ${supplier.displayName}. Ref: ${remote.transactionId ?? reference}`,
         failureReason: null,
         topupStatus: "success",
+        supplierResponse: rawResp,
       },
     });
 
     if (updated.count === 1) {
       await notifyTelegram(
         manualReviewMessage(
-          "✅ <b>Auto topup DELIVERED</b>",
+          `✅ <b>Auto topup DELIVERED (${escapeHtml(supplier.displayName)})</b>`,
           order.orderNumber,
           order.game.name,
           order.product.name,
           order.playerUid,
-          `Bay2Game ref: <code>${escapeHtml(remote.transactionId ?? reference)}</code> (status refresh)`
+          `${escapeHtml(supplier.displayName)} ref: <code>${escapeHtml(remote.transactionId ?? reference)}</code> (status refresh)`
         )
       );
     }
@@ -322,33 +372,38 @@ export async function refreshTopupStatus(orderNumber: string): Promise<Fulfillme
       where: { id: order.id, status: { in: ["PROCESSING", "PAID"] } },
       data: {
         status: "PAID",
-        failureReason: "Bay2Game reported the top-up as failed.",
-        deliveryNote: "Auto topup failed at provider. Please process this order manually.",
+        failureReason: `${supplier.displayName} reported the top-up as failed.`,
+        deliveryNote: `Auto topup failed at ${supplier.displayName}. Please process this order manually.`,
         topupStatus: "failed",
+        supplierResponse: rawResp,
       },
     });
 
     await notifyTelegram(
       manualReviewMessage(
-        "⚠️ <b>Auto topup FAILED — process manually</b>",
+        `⚠️ <b>Auto topup FAILED (${escapeHtml(supplier.displayName)}) — process manually</b>`,
         order.orderNumber,
         order.game.name,
         order.product.name,
         order.playerUid,
-        "Bay2Game reported FAILED."
+        `${supplier.displayName} reported FAILED.`
       )
     );
 
-    return { success: false, status: "failed", error: "Provider reported failed" };
+    return { success: false, status: "failed", error: `${supplier.displayName} reported failed` };
   }
 
-  // Still pending at the provider.
+  // Still pending / processing at the provider.
   await prisma.order.update({
     where: { id: order.id },
-    data: { topupStatus: "pending" },
+    data: {
+      topupStatus: "pending",
+      ...(rawResp ? { supplierResponse: rawResp } : {}),
+    },
   });
   return { success: false, skipped: true, status: "still_pending" };
 }
+
 
 
 

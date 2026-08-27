@@ -44,7 +44,7 @@ function buildPublicSettings(settings: PublicSettingsRecord) {
   );
 
   return {
-    siteName: settings?.siteName ?? "JASMIN TOPUP",
+    siteName: settings?.siteName ?? "DyTopup",
     exchangeRate: settings?.exchangeRate ?? 4100,
     maintenanceMode: settings?.maintenanceMode ?? false,
     maintenanceMessage:
@@ -52,11 +52,11 @@ function buildPublicSettings(settings: PublicSettingsRecord) {
     announcementEnabled,
     announcementText: announcementEnabled ? announcementText : "",
     announcementTone: settings?.announcementTone ?? "info",
-    supportTelegram: settings?.supportTelegram ?? "@jasmintopup",
+    supportTelegram: settings?.supportTelegram ?? "@dytopup",
     supportTikTok: settings?.supportTikTok ?? "",
     supportEmail: settings?.supportEmail ?? null,
     logoUrl: settings?.logoUrl ?? "/jasmintopup-logo.png",
-    logoText: settings?.logoText ?? "JASMINTOPUP",
+    logoText: settings?.logoText ?? "DyTopup",
     logoTagline: settings?.logoTagline ?? "Instant · Secure · 24/7",
     appConfig: {
       minSupportedVersion: settings?.appMinSupportedVersion ?? "1.0.0",

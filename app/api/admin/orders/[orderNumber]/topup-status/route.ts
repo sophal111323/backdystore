@@ -3,7 +3,7 @@
 // Admin-only top-up status refresh.
 // POST /api/admin/orders/[orderNumber]/topup-status
 //
-// Re-checks the EXISTING Bay2Game transaction via /check_order and updates
+// Re-checks the EXISTING supplier transaction via checkOrder and updates
 // the order. NEVER creates a new top-up — duplicate fulfillment is
 // impossible through this endpoint.
 
@@ -25,7 +25,7 @@ export const POST = withAdminAuth(async (
 
   const order = await prisma.order.findUnique({
     where: { orderNumber },
-    select: { id: true, orderNumber: true, status: true, topupProviderRef: true },
+    select: { id: true, orderNumber: true, status: true, topupProvider: true, topupProviderRef: true },
   });
 
   if (!order) {
@@ -36,7 +36,7 @@ export const POST = withAdminAuth(async (
     return NextResponse.json(
       {
         error:
-          "This order has no Bay2Game transaction. Auto top-up runs after payment; manual top-ups are handled outside the provider.",
+          "This order has no provider transaction. Auto top-up runs after payment; manual top-ups are handled outside the provider.",
       },
       { status: 400 }
     );
@@ -49,7 +49,7 @@ export const POST = withAdminAuth(async (
     targetType: "order",
     targetId: order.id,
     details: {
-      provider: "bay2game",
+      provider: order.topupProvider || "bay2game",
       reference: order.topupProviderRef,
       result,
     },
@@ -63,6 +63,7 @@ export const POST = withAdminAuth(async (
       topupProvider: true,
       topupProviderRef: true,
       topupStatus: true,
+      supplierResponse: true,
       deliveryNote: true,
       failureReason: true,
     },
@@ -75,3 +76,4 @@ export const POST = withAdminAuth(async (
     order: updated,
   });
 });
+

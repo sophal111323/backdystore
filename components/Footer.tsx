@@ -20,17 +20,22 @@ function socialInfo(value: string | null | undefined, fallbackUsername: string, 
 }
 
 function telegramInfo(value: string | null | undefined) {
-  return socialInfo(value, "jasmintopup", "https://t.me");
+  const safeVal = value && !value.toLowerCase().includes("jasmintopup") ? value : "@dytopup";
+  return socialInfo(safeVal, "dytopup", "https://t.me");
 }
 
 function tiktokInfo(value: string | null | undefined) {
-  return socialInfo(value, "jasmintopup", "https://www.tiktok.com/@");
+  const safeVal = value && !value.toLowerCase().includes("jasmintopup") ? value : "@dytopup";
+  return socialInfo(safeVal, "dytopup", "https://www.tiktok.com/@");
 }
 
 export default async function Footer() {
   const settings = await getPublicSettings();
   const telegram = telegramInfo(settings.supportTelegram);
   const tiktok = tiktokInfo(settings.supportTikTok);
+  const supportEmail = settings.supportEmail && !settings.supportEmail.toLowerCase().includes("jasmintopup")
+    ? settings.supportEmail
+    : "support@dytopup.com";
 
   return (
     <footer className="relative border-t-2 border-pink-200 bg-white">
@@ -42,13 +47,13 @@ export default async function Footer() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={settings.logoUrl || "/jasmintopup-logo.png"}
-                alt="Logo"
-                width={40}
+                alt="DyTopup Logo"
+                width={56}
                 height={40}
-                className="h-10 w-10 rounded-xl object-contain"
+                className="h-10 w-auto object-contain"
               />
               <span className="font-display text-lg font-extrabold text-pink-800">
-                JASMIN<span className="text-pink-500">TOPUP</span>
+                Dy<span className="text-pink-500">Topup</span>
               </span>
             </div>
             <p className="text-xs text-pink-600 leading-relaxed font-medium">
@@ -97,8 +102,8 @@ export default async function Footer() {
               items: [
                 { label: `Telegram: ${telegram.label}`, href: telegram.href },
                 { label: `TikTok: ${tiktok.label}`, href: tiktok.href },
-                ...(settings.supportEmail
-                  ? [{ label: settings.supportEmail, href: `mailto:${settings.supportEmail}` }]
+                ...(supportEmail
+                  ? [{ label: supportEmail, href: `mailto:${supportEmail}` }]
                   : []),
                 { label: "24/7 Service", href: telegram.href },
               ],
@@ -124,7 +129,7 @@ export default async function Footer() {
             KHQR
           </span>
           <a
-            href="https://sop-khal.vercel.app"
+            href="https://sophal.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[11px] font-bold text-pink-500 transition-all hover:-translate-y-0.5 hover:text-pink-700 hover:underline"
@@ -134,7 +139,7 @@ export default async function Footer() {
           <Link href="/privacy-policy" className="text-[11px] text-pink-500 font-semibold hover:text-pink-700 hover:underline transition-colors">
             Terms &amp; Policy
           </Link>
-          <p className="text-[11px] text-pink-400 font-semibold">&copy; {new Date().getFullYear()} JASMINTOPUP. All rights reserved.</p>
+          <p className="text-[11px] text-pink-400 font-semibold">&copy; {new Date().getFullYear()} DyTopup. All rights reserved.</p>
         </div>
       </div>
     </footer>

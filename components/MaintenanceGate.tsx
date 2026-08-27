@@ -103,7 +103,7 @@ export default function MaintenanceGate() {
               <div className="absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.22),transparent_58%)]" />
               <img
                 src="/jasmintopup-logo.png"
-                alt="JASMINTOPUP logo"
+                alt="DyTopup logo"
                 className="relative h-full w-full object-contain drop-shadow-[0_14px_22px_rgba(219,39,119,0.28)]"
               />
               <div className="absolute -bottom-3 right-5 flex h-10 w-10 items-center justify-center rounded-2xl border border-white bg-gradient-to-br from-pink-500 to-fuchsia-500 text-white shadow-lg shadow-pink-400/45">

@@ -5,9 +5,9 @@ import Footer from "@/components/Footer";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "គោលការណ៍ឯកជនភាព — JASMINTOPUP",
+  title: "គោលការណ៍ឯកជនភាព — DyTopup",
   description:
-    "គោលការណ៍ឯកជនភាពរបស់ JASMINTOPUP ពន្យល់ពីរបៀបប្រមូល ប្រើប្រាស់ និងការពារព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក។",
+    "គោលការណ៍ឯកជនភាពរបស់ DyTopup ពន្យល់ពីរបៀបប្រមូល ប្រើប្រាស់ និងការពារព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក។",
 };
 
 const LAST_UPDATED = "១៥ ឧសភា ២០២៦";
@@ -19,7 +19,7 @@ const sections = [
     title: "សេចក្តីផ្តើម",
     content: (
       <p>
-        JASMINTOPUP (<a href="https://www.jasmintopup.site" className="text-pink-600 hover:underline font-semibold">www.jasmintopup.site</a>)
+        DyTopup (<a href="https://www.jasmintopup.site" className="text-pink-600 hover:underline font-semibold">www.jasmintopup.site</a>)
         គឺជា platform សម្រាប់បញ្ចូល diamonds, coins, Robux និង game credits ផ្សេងៗ
         ស្ថិតនៅក្នុងប្រទេសកម្ពុជា។ គោលការណ៍ឯកជនភាពនេះ ពន្យល់ពីរបៀបដែលយើង
         ប្រមូល រក្សា ប្រើប្រាស់ និងការពារព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក នៅពេល
@@ -113,7 +113,7 @@ const sections = [
     content: (
       <>
         <p className="mb-3">
-          ការទូទាត់នៅ JASMINTOPUP ដំណើរការតាម <strong className="text-pink-700">KHQR</strong>{" "}
+          ការទូទាត់នៅ DyTopup ដំណើរការតាម <strong className="text-pink-700">KHQR</strong>{" "}
           ដែលជាវិធីបង់ប្រាក់ស្ដង់ដាររបស់ប្រទេសកម្ពុជា។ យើងទទួលបានតែ
           Transaction Reference ID និងរូបភាព payment proof ប៉ុណ្ណោះ
           ដើម្បីផ្ទៀងផ្ទាត់ការបង់ប្រាក់។
@@ -140,7 +140,7 @@ const sections = [
     title: "Log Files",
     content: (
       <p>
-        ដូច website ភាគច្រើន JASMINTOPUP ប្រើប្រាស់ log files ស្វ័យប្រវត្តិ
+        ដូច website ភាគច្រើន DyTopup ប្រើប្រាស់ log files ស្វ័យប្រវត្តិ
         ដែលរួមមាន IP address, ប្រភេទ browser, Internet Service Provider (ISP),
         កាលបរិច្ឆេទ និងពេលវេលា, ទំព័រ referral និង exit។
         Log ទាំងនេះត្រូវបានប្រើដើម្បីវិភាគ trend, គ្រប់គ្រង website,
@@ -286,7 +286,7 @@ const sections = [
     content: (
       <>
         <p className="mb-2">
-          JASMINTOPUP <strong className="text-pink-700">មិនមែនសម្រាប់</strong>
+          DyTopup <strong className="text-pink-700">មិនមែនសម្រាប់</strong>
           អ្នកដែលមានអាយុក្រោម ១៨ ឆ្នាំទេ។ យើងមិនដឹងខ្លួន ឬចេតនា
           ប្រមូលព័ត៌មានផ្ទាល់ខ្លួនពីអ្នកមានអាយុក្រោម ១៨ ឆ្នាំឡើយ។
         </p>
@@ -331,7 +331,7 @@ const sections = [
         </p>
         <div className="rounded-2xl border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-white p-5 space-y-3">
           {[
-            { icon: <Image src="/jasmintopup-logo.png" alt="" width={20} height={20} className="h-5 w-5 object-contain" />, label: "JASMINTOPUP" },
+            { icon: <Image src="/jasmintopup-logo.png" alt="" width={20} height={20} className="h-5 w-5 object-contain" />, label: "DyTopup" },
             { icon: <span aria-hidden="true">🌐</span>, label: <a href="https://www.jasmintopup.site" className="text-pink-700 hover:underline font-medium">www.jasmintopup.site</a> },
             { icon: <span aria-hidden="true">✉️</span>, label: <a href="mailto:jasmintopup@gmail.com" className="text-pink-700 hover:underline font-medium">jasmintopup@gmail.com</a> },
             { icon: <span aria-hidden="true">🇰🇭</span>, label: "ប្រទេសកម្ពុជា" },
@@ -377,13 +377,13 @@ export default function PrivacyPolicyPage() {
               <h1 className="mt-5 max-w-3xl font-display text-4xl font-black leading-tight text-pink-950 sm:text-5xl lg:text-6xl">
                 គោលការណ៍ឯកជនភាព
                 <span className="mt-2 block bg-gradient-to-r from-pink-500 via-fuchsia-500 to-rose-400 bg-clip-text text-transparent">
-                  JASMINTOPUP
+                  DyTopup
                 </span>
               </h1>
 
               <p className="mt-4 max-w-2xl text-sm font-semibold leading-8 text-pink-800/70 sm:text-base">
                 យើងពន្យល់យ៉ាងច្បាស់ពីរបៀបប្រមូល ប្រើប្រាស់ រក្សាទុក និងការពារព័ត៌មានរបស់អ្នក
-                ពេលប្រើប្រាស់សេវាកម្ម top-up របស់ JASMINTOPUP។
+                ពេលប្រើប្រាស់សេវាកម្ម top-up របស់ DyTopup។
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -408,7 +408,7 @@ export default function PrivacyPolicyPage() {
                   <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.5rem] border border-pink-100 bg-white p-2 shadow-lg shadow-pink-200/50">
                     <Image
                       src="/jasmintopup-logo.png"
-                      alt="JASMINTOPUP"
+                      alt="DyTopup"
                       width={80}
                       height={80}
                       className="h-full w-full object-contain"
@@ -416,7 +416,7 @@ export default function PrivacyPolicyPage() {
                     />
                   </span>
                   <div>
-                    <p className="text-xl font-black text-pink-950">JASMINTOPUP</p>
+                    <p className="text-xl font-black text-pink-950">DyTopup</p>
                     <p className="mt-1 text-xs font-extrabold uppercase tracking-[0.24em] text-pink-400">Instant · Secure · 24/7</p>
                     <span className="mt-3 inline-flex rounded-full border border-pink-200 bg-white px-3 py-1 text-xs font-bold text-pink-600">
                       កែប្រែចុងក្រោយ: {LAST_UPDATED}
@@ -500,7 +500,7 @@ export default function PrivacyPolicyPage() {
             <div className="mt-10 rounded-[2rem] border border-pink-100 bg-gradient-to-br from-white via-pink-50 to-white p-6 text-center shadow-xl shadow-pink-100/60">
               <p className="text-xs font-black uppercase tracking-[0.28em] text-pink-400">Developer</p>
               <a
-                href="https://sop-khal.vercel.app"
+                href="https://sophal.vercel.app/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-pink-300/40 transition-all duration-300 hover:-translate-y-0.5"

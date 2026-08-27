@@ -9,7 +9,7 @@ import PublicDataRefresh from "@/components/PublicDataRefresh";
 import { getPublicSettings } from "@/lib/publicData";
 
 export const metadata: Metadata = {
-  title: "JASMINTOPUP",
+  title: "DyTopup",
   description:
     "Top up Mobile Legends, Free Fire, PUBG Mobile and more. Instant delivery, secure KHQR payment. 24/7 service in Cambodia.",
   keywords: [
@@ -20,10 +20,11 @@ export const metadata: Metadata = {
     "ABA Pay",
     "KHQR",
     "Cambodia top up",
-    "JASMINTOPUP",
+    "DyTopup",
+    "Dy Top Up",
   ],
   openGraph: {
-    title: "JASMINTOPUP",
+    title: "DyTopup",
     description: "Instant game top-ups with KHQR",
     type: "website",
   },

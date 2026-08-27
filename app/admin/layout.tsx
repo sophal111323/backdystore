@@ -9,7 +9,7 @@ import AdminClickSound from "@/components/AdminClickSound";
 import AdminMouseEffect from "@/components/AdminMouseEffect";
 
 const ADMIN_COOKIE_NAME = "admin_token";
-const ADMIN_LOGIN_PATH = process.env.ADMIN_LOGIN_PATH || "/admin/sophallogin";
+const ADMIN_LOGIN_PATH = process.env.ADMIN_LOGIN_PATH || "/admin/dystore";
 
 export default async function AdminLayout({
   children,
@@ -33,7 +33,7 @@ export default async function AdminLayout({
     <div className="admin-root flex min-h-screen bg-fox-bg text-fox-text">
       <AdminClickSound />
       <AdminMouseEffect />
-      <AdminSidebar adminEmail={admin.email} />
+      <AdminSidebar adminEmail={admin.email} loginPath={ADMIN_LOGIN_PATH} />
       <AdminPageTransition>{children}</AdminPageTransition>
     </div>
   );

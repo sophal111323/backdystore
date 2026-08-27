@@ -216,9 +216,21 @@ export default function AdminOrderDetailPage() {
         <div className="card p-6">
           <h3 className="text-xs uppercase tracking-wider text-fox-muted mb-4">Game Top-up (Provider)</h3>
           <dl className="space-y-3 text-sm">
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <dt className="text-fox-muted">Provider</dt>
-              <dd>{order.topupProvider || "—"}</dd>
+              <dd>
+                {order.topupProvider === "khmer_topup" ? (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    Khmer TopUp
+                  </span>
+                ) : order.topupProvider ? (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                    {order.topupProvider}
+                  </span>
+                ) : (
+                  "—"
+                )}
+              </dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-fox-muted">Provider Ref</dt>
@@ -226,13 +238,29 @@ export default function AdminOrderDetailPage() {
             </div>
             <div className="flex justify-between">
               <dt className="text-fox-muted">Provider Status</dt>
-              <dd>{order.topupStatus || "—"}</dd>
+              <dd className="capitalize">{order.topupStatus || "—"}</dd>
             </div>
             {order.deliveryNote && (
               <div className="flex justify-between gap-4">
                 <dt className="text-fox-muted shrink-0">Note</dt>
                 <dd className="text-right text-xs">{order.deliveryNote}</dd>
               </div>
+            )}
+            {order.supplierResponse && (
+              <details className="mt-2 text-xs">
+                <summary className="cursor-pointer text-fox-muted hover:text-fox-text">
+                  Supplier Raw Response
+                </summary>
+                <pre className="mt-1 p-2 rounded bg-black/40 text-fox-muted overflow-x-auto text-[11px] font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+                  {(() => {
+                    try {
+                      return JSON.stringify(JSON.parse(order.supplierResponse), null, 2);
+                    } catch {
+                      return order.supplierResponse;
+                    }
+                  })()}
+                </pre>
+              </details>
             )}
             {order.topupProviderRef && !["DELIVERED", "REFUNDED", "CANCELLED"].includes(order.status) && (
               <button

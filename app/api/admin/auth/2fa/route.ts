@@ -336,15 +336,41 @@ async function handleWeb2FA(req: NextRequest, inputCode: string) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // If 2FA is not configured for this admin, allow login directly
   if (!admin.totpSecret) {
-    return NextResponse.json(
-      {
-        error:
-          "TOTP not configured. Please complete 2FA setup before logging in.",
-        needsSetup: true,
-      },
-      { status: 403 }
-    );
+    await prisma.adminAuthLock.deleteMany({ where: { identifier } });
+    await prisma.admin.update({
+      where: { id: payload.adminId },
+      data: { lastLoginAt: new Date() },
+    });
+
+    await recordLoginInfo(req, payload.email, payload.adminId, "web");
+    const adminToken = signAdminToken(payload.adminId);
+    const isProduction = process.env.NODE_ENV === "production";
+
+    const res = NextResponse.json({
+      ok: true,
+      email: payload.email,
+      message: "ចូលប្រព័ន្ធបានជោគជ័យ",
+    });
+
+    res.cookies.set(ADMIN_COOKIE_NAME, adminToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "strict",
+      path: "/",
+      maxAge: SESSION_MAX_AGE_SECONDS,
+    });
+
+    res.cookies.set(PENDING_2FA_COOKIE, "", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "strict",
+      path: "/",
+      maxAge: 0,
+    });
+
+    return res;
   }
 
   const usedToken = await prisma.usedTotpToken.findUnique({
@@ -353,7 +379,7 @@ async function handleWeb2FA(req: NextRequest, inputCode: string) {
 
   if (usedToken) {
     return NextResponse.json(
-      { error: "Code already used. Please wait for a new code." },
+      { error: "លេខកូដនេះបានប្រើរួចហើយ។ សូមរង់ចាំលេខកូដថ្មី។" },
       { status: 401 }
     );
   }
@@ -363,14 +389,15 @@ async function handleWeb2FA(req: NextRequest, inputCode: string) {
   if (!isValid) {
     const nextFail = (lock?.failCount ?? 0) + 1;
     const durationMs = getLockDurationMs(nextFail);
-    const lockedUntil = new Date(Date.now() + durationMs);
+    const isLocked = durationMs > 0;
+    const lockedUntil = isLocked ? new Date(Date.now() + durationMs) : null;
 
     logSecurityEvent({
       event: "admin_2fa_fail",
       adminId: payload.adminId,
       ip,
       failCount: nextFail,
-      lockDuration: formatLockDuration(durationMs),
+      lockDuration: isLocked ? formatLockDuration(durationMs) : "none",
     });
 
     await prisma.adminAuthLock.upsert({
@@ -386,14 +413,26 @@ async function handleWeb2FA(req: NextRequest, inputCode: string) {
       details: { failCount: nextFail },
     });
 
-    const remainingMs = lockedUntil.getTime() - Date.now();
+    if (isLocked && lockedUntil) {
+      const remainingMs = lockedUntil.getTime() - Date.now();
+      return NextResponse.json(
+        {
+          error: `កូដ 2FA មិនត្រឹមត្រូវ។ គណនីត្រូវ lock រយៈពេល ${formatLockDuration(remainingMs)}។`,
+          lockedUntil,
+          retryAfter: formatLockDuration(remainingMs),
+          attemptsRemaining: 0,
+        },
+        { status: 429 }
+      );
+    }
+
+    const remainingAttempts = Math.max(0, 3 - nextFail);
     return NextResponse.json(
       {
-        error: `Invalid 2FA code. Please try again in ${formatLockDuration(remainingMs)}.`,
-        lockedUntil,
-        retryAfter: formatLockDuration(remainingMs),
+        error: `លេខកូដ 2FA មិនត្រឹមត្រូវ (នៅសល់ ${remainingAttempts} លើកទៀត មុនពេល lock)`,
+        attemptsRemaining: remainingAttempts,
       },
-      { status: 429 }
+      { status: 401 }
     );
   }
 

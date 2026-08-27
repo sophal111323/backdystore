@@ -7,19 +7,33 @@ import { revalidateAdminChange } from "@/lib/adminRevalidate";
 
 export const dynamic = "force-dynamic";
 
-const productSchema = z.object({
-  gameId: z.string().min(1),
-  name: z.string().min(1),
-  amount: z.number().int().min(0),
-  bonus: z.number().int().min(0).default(0),
-  priceUsd: z.number().positive(),
-  priceKhr: z.number().positive().optional().nullable(),
-  badge: z.string().optional().nullable(),
-  imageUrl: z.string().optional().nullable(),
-  active: z.boolean().default(true),
-  sortOrder: z.number().int().default(0),
-  supplierCode: z.string().optional().nullable(),
-});
+const productSchema = z
+  .object({
+    gameId: z.string().min(1),
+    name: z.string().min(1),
+    amount: z.number().int().min(0),
+    bonus: z.number().int().min(0).default(0),
+    priceUsd: z.number().positive(),
+    priceKhr: z.number().positive().optional().nullable(),
+    badge: z.string().optional().nullable(),
+    imageUrl: z.string().optional().nullable(),
+    active: z.boolean().default(true),
+    sortOrder: z.number().int().default(0),
+    supplier: z.enum(["bay2game", "khmer_topup"]).default("bay2game"),
+    supplierCode: z.string().optional().nullable(),
+    supplierProductCode: z.string().optional().nullable(),
+  })
+  .transform((data) => {
+    const code =
+      data.supplierProductCode !== undefined
+        ? data.supplierProductCode
+        : data.supplierCode;
+    const { supplierProductCode, ...rest } = data;
+    return {
+      ...rest,
+      supplierCode: code ? code.trim() : null,
+    };
+  });
 
 export const GET = withAdminAuth(
   async (req) => {

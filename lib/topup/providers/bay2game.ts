@@ -31,7 +31,13 @@
 //   • create_order supports both GET and POST; we use POST so the player ID
 //     and reference stay out of access logs.
 
-import type { TopUpRequest, TopUpResult, TopUpStatusResult } from "../types";
+import type {
+  TopupSupplier,
+  TopupBalanceResult,
+  TopUpRequest,
+  TopUpResult,
+  TopUpStatusResult,
+} from "../types";
 
 function cleanEnv(value?: string): string {
   return (value || "").trim().replace(/^['"]|['"]$/g, "");
@@ -350,18 +356,24 @@ export async function createTopup(req: TopUpRequest): Promise<TopUpResult> {
         success: true,
         transactionId: String(data.reference ?? req.reference),
         status: normalizeBay2GameStatus("success"),
+        rawResponse: data,
       };
     }
 
     if (providerStatus === "failed") {
       // Documented failure example: insufficient balance.
-      return { success: false, error: String(data.message || "Top-up failed") };
+      return {
+        success: false,
+        error: String(data.message || "Top-up failed"),
+        rawResponse: data,
+      };
     }
 
     // status === "ERROR" or unexpected payload.
     return {
       success: false,
       error: String(data?.message || `HTTP ${res.status}`),
+      rawResponse: data,
     };
   } catch (err) {
     if (err instanceof Bay2GameConfigError) {
@@ -399,6 +411,7 @@ export async function getTopupStatus(
         transactionId: String(order.transaction_id ?? reference),
         productName: order.product_name ? String(order.product_name) : undefined,
         amount: typeof order.amount !== "undefined" ? Number(order.amount) : undefined,
+        rawResponse: res.data,
       };
     }
 
@@ -406,6 +419,7 @@ export async function getTopupStatus(
       found: false,
       status: "unknown",
       error: String(res.data?.message || `HTTP ${res.status}`),
+      rawResponse: res.data,
     };
   } catch (err) {
     if (err instanceof Bay2GameConfigError) {
@@ -414,6 +428,45 @@ export async function getTopupStatus(
     return { found: false, status: "unknown", error: "Unexpected error checking status" };
   }
 }
+
+export class Bay2GameSupplier implements TopupSupplier {
+  readonly name = "bay2game" as const;
+  readonly displayName = "Bay2Game";
+
+  async createOrder(params: {
+    productCode: string;
+    playerId: string;
+    serverId?: string;
+    orderReference: string;
+  }): Promise<TopUpResult> {
+    return createTopup({
+      reference: params.orderReference,
+      productCode: params.productCode,
+      userId: params.playerId,
+      zoneId: params.serverId,
+      supplier: "bay2game",
+    });
+  }
+
+  async checkOrder(referenceOrOrderCode: string): Promise<TopUpStatusResult> {
+    return getTopupStatus(referenceOrOrderCode);
+  }
+
+  async getBalance(): Promise<TopupBalanceResult> {
+    return getBalance();
+  }
+
+  async getCategories() {
+    return getCategories();
+  }
+
+  async getProducts(gameCode: string) {
+    return getProducts(gameCode);
+  }
+}
+
+export const bay2gameSupplier = new Bay2GameSupplier();
+
 
 
 

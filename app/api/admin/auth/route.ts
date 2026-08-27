@@ -175,61 +175,113 @@ export async function POST(req: NextRequest) {
         ip
       );
 
-      const remainingMs = result.lockedUntil.getTime() - Date.now();
+      if (result.isLocked && result.lockedUntil) {
+        const remainingMs = result.lockedUntil.getTime() - Date.now();
+        return NextResponse.json(
+          {
+            error: `Password មិនត្រឹមត្រូវ។ គណនីត្រូវ lock រយៈពេល ${formatLockDuration(remainingMs)}។`,
+            lockedUntil: result.lockedUntil,
+            retryAfter: formatLockDuration(remainingMs),
+            attemptsRemaining: 0,
+          },
+          { status: 429, headers: { "Cache-Control": "no-store" } }
+        );
+      }
 
+      const remainingAttempts = Math.max(0, 3 - result.failCount);
       return NextResponse.json(
         {
-          error: `Invalid credentials. Please try again in ${formatLockDuration(
-            remainingMs
-          )}.`,
-          lockedUntil: result.lockedUntil,
-          retryAfter: formatLockDuration(remainingMs),
+          error: `Password មិនត្រឹមត្រូវ។ (នៅសល់ ${remainingAttempts} លើកទៀត មុនពេល lock)`,
+          attemptsRemaining: remainingAttempts,
         },
         { status: 401, headers: { "Cache-Control": "no-store" } }
       );
     }
 
-    // ✅ Password correct — clear lock, issue pending-2FA token
+    // ✅ Password correct — clear lock
     await prisma.adminAuthLock.deleteMany({
       where: { identifier },
     });
 
     logSecurityEvent({
-      event: "admin_password_success_pending_2fa",
+      event: admin.totpSecret
+        ? "admin_password_success_pending_2fa"
+        : "admin_login_success",
       ip,
       detail: email,
     });
 
-    const ttlSeconds = get2FATtlSeconds();
+    const isProduction = process.env.NODE_ENV === "production";
 
-    const pendingToken = jwt.sign(
+    // If 2FA (totpSecret) is configured, proceed to 2FA step
+    if (admin.totpSecret) {
+      const ttlSeconds = get2FATtlSeconds();
+      const pendingToken = jwt.sign(
+        {
+          type: "admin-2fa-pending",
+          adminId: String(admin.id),
+          email: admin.email,
+        },
+        getAdminJwtSecret(),
+        { expiresIn: ttlSeconds }
+      );
+
+      const res = NextResponse.json(
+        {
+          ok: true,
+          requires2FA: true,
+          email: admin.email,
+          message: "Password ត្រឹមត្រូវ។ សូមបញ្ចូលកូដ 2FA។",
+        },
+        { headers: { "Cache-Control": "no-store" } }
+      );
+
+      res.cookies.set(PENDING_2FA_COOKIE, pendingToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "strict",
+        path: "/",
+        maxAge: ttlSeconds,
+      });
+
+      return res;
+    }
+
+    // If 2FA is NOT configured, log in directly!
+    const sessionToken = jwt.sign(
       {
-        type: "admin-2fa-pending",
         adminId: String(admin.id),
         email: admin.email,
+        role: admin.role,
       },
       getAdminJwtSecret(),
-      { expiresIn: ttlSeconds }
+      { expiresIn: "7d" }
     );
 
     const res = NextResponse.json(
       {
         ok: true,
-        requires2FA: true,
+        requires2FA: false,
         email: admin.email,
-        message: "Password correct. Please confirm 2FA code.",
+        message: "ចូលប្រព័ន្ធបានជោគជ័យ!",
       },
       { headers: { "Cache-Control": "no-store" } }
     );
 
-    const isProduction = process.env.NODE_ENV === "production";
-
-    res.cookies.set(PENDING_2FA_COOKIE, pendingToken, {
+    res.cookies.set(ADMIN_COOKIE_NAME, sessionToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: "strict",
       path: "/",
-      maxAge: ttlSeconds,
+      maxAge: 7 * 24 * 60 * 60,
+    });
+
+    res.cookies.set(PENDING_2FA_COOKIE, "", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "strict",
+      path: "/",
+      maxAge: 0,
     });
 
     return res;
@@ -277,14 +329,15 @@ async function handleLoginFail(
 ) {
   const nextFail = currentFailCount + 1;
   const durationMs = getLockDurationMs(nextFail);
-  const lockedUntil = new Date(Date.now() + durationMs);
+  const isLocked = durationMs > 0;
+  const lockedUntil = isLocked ? new Date(Date.now() + durationMs) : null;
 
   logSecurityEvent({
     event: "admin_login_fail",
     ip,
     detail: identifier,
     failCount: nextFail,
-    lockDuration: formatLockDuration(durationMs),
+    lockDuration: isLocked ? formatLockDuration(durationMs) : "none",
   });
 
   await prisma.adminAuthLock.upsert({
@@ -302,5 +355,5 @@ async function handleLoginFail(
     },
   });
 
-  return { lockedUntil };
+  return { failCount: nextFail, isLocked, lockedUntil };
 }

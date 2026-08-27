@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 
   // Generate a fresh secret (not saved yet — saved on POST confirm)
   const secret = authenticator.generateSecret(20);
-  const issuer = process.env.NEXT_PUBLIC_SITE_NAME || "JASMINTOPUP";
+  const issuer = process.env.NEXT_PUBLIC_SITE_NAME || "DyTopup";
   const otpAuthUrl = authenticator.keyuri(admin.email, issuer, secret);
 
   // Use Google Charts API to render QR (no sensitive server-side lib needed)

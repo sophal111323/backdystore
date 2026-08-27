@@ -253,7 +253,7 @@ function KHQRFrame({
       const blob = await buildKhqrBlob(
         qrString,
         amountUsd,
-        storeName ?? "JASMINTOPUP"
+        storeName ?? "DyTopup"
       );
       const url  = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -305,7 +305,7 @@ function KHQRFrame({
 
         {/* Store name */}
         <p style={{ margin: "0 0 4px", fontSize: 13, color: "#9ca3af", fontWeight: 400 }}>
-          {storeName ?? "JASMINTOPUP"}
+          {storeName ?? "DyTopup"}
         </p>
 
         {/* Amount */}

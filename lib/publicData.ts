@@ -42,10 +42,10 @@ export const getPublicSettings = unstable_cache(
       .catch(() => null);
 
     return {
-      siteName: settings?.siteName || "JASMIN TOPUP",
+      siteName: settings?.siteName || "DyTopup",
       exchangeRate: settings?.exchangeRate ?? 4100,
-      supportTelegram: settings?.supportTelegram || "@jasmintopup",
-      supportTikTok: settings?.supportTikTok || "",
+      supportTelegram: settings?.supportTelegram || "@dytopup",
+      supportTikTok: settings?.supportTikTok || "@dytopup",
       supportEmail: settings?.supportEmail || null,
       maintenanceMode: settings?.maintenanceMode ?? false,
       maintenanceMessage:

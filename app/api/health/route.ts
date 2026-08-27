@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     {
       ok: true,
       time: new Date().toISOString(),
-      service: "JASMINTOPUP",
+      service: "DyTopup",
     },
     undefined,
     "no-store"

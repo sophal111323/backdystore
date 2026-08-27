@@ -5,9 +5,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | JASMINTOPUP",
+  title: "Terms of Service | DyTopup",
   description:
-    "គោលការណ៍សេវាកម្ម ការសងប្រាក់ ការកែប្រែបញ្ជាទិញ និងការមិនទទួលខុសត្រូវក្រោយពេលទិញនៅ JASMINTOPUP។",
+    "គោលការណ៍សេវាកម្ម ការសងប្រាក់ ការកែប្រែបញ្ជាទិញ និងការមិនទទួលខុសត្រូវក្រោយពេលទិញនៅ DyTopup។",
   keywords: [
     "jasmin topup",
     "terms of service",
@@ -16,9 +16,9 @@ export const metadata: Metadata = {
     "game top up Cambodia",
   ],
   openGraph: {
-    title: "Terms of Service | JASMINTOPUP",
+    title: "Terms of Service | DyTopup",
     description:
-      "អានលក្ខខណ្ឌសេវាកម្មរបស់ JASMINTOPUP មុនពេលបញ្ជាទិញ ដើម្បីជៀសវាងការបញ្ចូល UID, Server ឬ Package ខុស។",
+      "អានលក្ខខណ្ឌសេវាកម្មរបស់ DyTopup មុនពេលបញ្ជាទិញ ដើម្បីជៀសវាងការបញ្ចូល UID, Server ឬ Package ខុស។",
     type: "website",
   },
 };
@@ -42,7 +42,7 @@ const termsSections = [
       "ជ្រើសរើស Game ឬ Package ខុស",
       "បញ្ជាទិញទៅកាន់គណនីអ្នកផ្សេងដោយចៃដន្យ",
       "បង់ប្រាក់រួច ប៉ុន្តែចង់ប្តូរ Package ក្រោយមក",
-      "Account របស់អតិថិជនមានបញ្ហាដែលមិនពាក់ព័ន្ធនឹង JASMINTOPUP",
+      "Account របស់អតិថិជនមានបញ្ហាដែលមិនពាក់ព័ន្ធនឹង DyTopup",
       "Game provider ឬ third-party service មានការផ្លាស់ប្តូរ ឬពន្យារពេល",
     ],
   },
@@ -73,7 +73,7 @@ const termsSections = [
     title: "ករណីដែលយើងទទួលខុសត្រូវ",
     tone: "soft",
     items: [
-      "បញ្ហាកើតពីប្រព័ន្ធ JASMINTOPUP ផ្ទាល់",
+      "បញ្ហាកើតពីប្រព័ន្ធ DyTopup ផ្ទាល់",
       "ការបញ្ជាទិញមិនទាន់ដឹកជញ្ជូន ហើយមាន payment proof ត្រឹមត្រូវ",
       "ចំនួនទឹកប្រាក់ ឬ Package មិនត្រូវតាម order ដោយសារកំហុសប្រព័ន្ធ",
       "យើងនឹងពិនិត្យ និងដោះស្រាយដោយយុត្តិធម៌",
@@ -192,7 +192,7 @@ export default function TermsOfServicePage() {
             <div className="terms-card rounded-[2.4rem] border border-white/80 bg-white/68 p-6 shadow-[0_28px_80px_rgba(236,72,153,0.14)] backdrop-blur-2xl sm:p-8 lg:p-10">
               <Badge>
                 <span className="h-2 w-2 rounded-full bg-pink-500 shadow-[0_0_14px_rgba(236,72,153,0.9)]" />
-                JASMINTOPUP Policy
+                DyTopup Policy
               </Badge>
 
               <h1 className="mt-5 text-3xl font-black leading-tight tracking-tight text-pink-950 sm:text-4xl lg:text-5xl">
@@ -203,7 +203,7 @@ export default function TermsOfServicePage() {
               </h1>
 
               <p className="mt-4 max-w-2xl text-base font-semibold leading-relaxed text-pink-950/65 sm:text-lg">
-                សូមអានព័ត៌មាននេះមុនពេលបញ្ជាទិញ។ វាជួយឱ្យអ្នកយល់ពីការសងប្រាក់ ការកែប្រែ order និងទំនួលខុសត្រូវរបស់អ្នកពេលប្រើប្រាស់សេវា JASMINTOPUP។
+                សូមអានព័ត៌មាននេះមុនពេលបញ្ជាទិញ។ វាជួយឱ្យអ្នកយល់ពីការសងប្រាក់ ការកែប្រែ order និងទំនួលខុសត្រូវរបស់អ្នកពេលប្រើប្រាស់សេវា DyTopup។
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -278,13 +278,13 @@ export default function TermsOfServicePage() {
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-white/70">Support Center</p>
                 <h2 className="mt-3 text-2xl font-black sm:text-3xl">យើងនៅទីនេះដើម្បីជួយអ្នក</h2>
                 <p className="mt-4 text-sm font-semibold leading-relaxed text-white/86">
-                  ប្រសិនបើបញ្ហាកើតចេញពីប្រព័ន្ធ JASMINTOPUP ឬការដឹកជញ្ជូនមិនបានបញ្ចប់ យើងនឹងពិនិត្យ និងដោះស្រាយដោយយុត្តិធម៌។
+                  ប្រសិនបើបញ្ហាកើតចេញពីប្រព័ន្ធ DyTopup ឬការដឹកជញ្ជូនមិនបានបញ្ចប់ យើងនឹងពិនិត្យ និងដោះស្រាយដោយយុត្តិធម៌។
                 </p>
               </div>
 
               <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
                 <a
-                  href="https://t.me/JASMINTOPUP"
+                  href="https://t.me/DyTopup"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group rounded-[1.5rem] border border-pink-100 bg-white p-5 shadow-sm shadow-pink-100/70 transition-all duration-300 hover:-translate-y-1 hover:border-pink-300 hover:shadow-xl hover:shadow-pink-200/70"
@@ -295,11 +295,11 @@ export default function TermsOfServicePage() {
                     </svg>
                   </span>
                   <h3 className="text-lg font-black text-pink-950">Telegram</h3>
-                  <p className="mt-1 text-sm font-bold text-pink-500">@JASMINTOPUP</p>
+                  <p className="mt-1 text-sm font-bold text-pink-500">@DyTopup</p>
                 </a>
 
                 <a
-                  href="https://www.tiktok.com/@jasmintopup03"
+                  href="https://www.tiktok.com/@dytopup"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group rounded-[1.5rem] border border-pink-100 bg-white p-5 shadow-sm shadow-pink-100/70 transition-all duration-300 hover:-translate-y-1 hover:border-pink-300 hover:shadow-xl hover:shadow-pink-200/70"
@@ -310,7 +310,7 @@ export default function TermsOfServicePage() {
                     </svg>
                   </span>
                   <h3 className="text-lg font-black text-pink-950">TikTok</h3>
-                  <p className="mt-1 text-sm font-bold text-pink-500">@jasmintopup03</p>
+                  <p className="mt-1 text-sm font-bold text-pink-500">@dytopup</p>
                 </a>
               </div>
             </div>

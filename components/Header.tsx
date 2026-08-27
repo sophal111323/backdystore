@@ -116,20 +116,17 @@ export default function Header() {
 
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="group flex items-center gap-2.5">
-            <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-white via-pink-50 to-pink-100 p-1 shadow-md shadow-pink-200/60 ring-1 ring-pink-200/80 transition-all duration-300 group-hover:scale-105 group-hover:shadow-pink-300/70">
-              <span className="absolute inset-0 rounded-2xl bg-pink-300/20 blur-md opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              <Image
-                src="/jasmintopup-logo.png"
-                alt="JASMINTOPUP Logo"
-                width={44}
-                height={44}
-                className="relative h-full w-full object-contain drop-shadow-sm"
-                priority
-              />
-            </span>
+            <Image
+              src="/jasmintopup-logo.png"
+              alt="DyTopup Logo"
+              width={64}
+              height={44}
+              className="h-11 w-auto object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
+              priority
+            />
             <div className="flex flex-col leading-none">
               <span className="font-display text-xl font-extrabold tracking-tight text-pink-800">
-                JASMIN<span className="text-pink-500">TOPUP</span>
+                Dy<span className="text-pink-500">Topup</span>
               </span>
               <span className="text-[9px] font-bold uppercase tracking-widest text-pink-400">
                 Instant · Secure · 24/7
@@ -206,36 +203,44 @@ export default function Header() {
         </div>
       </header>
 
+      {/* ── Overlay backdrop with smooth fade & blur ── */}
       <div
-        className={`mobile-drawer-overlay fixed inset-0 z-[55] md:hidden ${mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed inset-0 z-[55] bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+          mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
         onClick={() => setMobileOpen(false)}
         aria-hidden="true"
       />
 
+      {/* ── Drawer Shell with smooth spring slide-in ── */}
       <aside
-        className={`mobile-drawer-shell fixed right-0 top-0 z-[60] h-dvh w-[82vw] max-w-[330px] md:hidden ${
-          mobileOpen ? "translate-x-0 opacity-100" : "pointer-events-none translate-x-[108%] opacity-0"
+        className={`fixed right-0 top-0 z-[60] h-dvh w-[84vw] max-w-[340px] border-l border-white/80 bg-white/95 shadow-[-20px_0_60px_rgba(236,72,153,0.18)] backdrop-blur-2xl transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden ${
+          mobileOpen ? "translate-x-0 opacity-100" : "pointer-events-none translate-x-full opacity-0"
         }`}
         aria-hidden={!mobileOpen}
       >
-        <div className="mobile-drawer-bg absolute inset-0 overflow-hidden rounded-l-[1.7rem]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-pink-50/70 via-white/80 to-pink-50/50 pointer-events-none" />
 
-        <div className="relative flex h-full flex-col px-3.5 pb-3.5 pt-3.5">
-          <div className="mobile-drawer-top mobile-drawer-fade rounded-[1.45rem] border border-white/80 bg-white/76 p-3 shadow-[0_16px_40px_rgba(236,72,153,0.12)] backdrop-blur-2xl">
+        <div className="relative flex h-full flex-col px-4 pb-4 pt-4 overflow-y-auto">
+          {/* Top header card inside drawer */}
+          <div
+            className={`rounded-[1.45rem] border border-white/90 bg-white/85 p-3.5 shadow-[0_16px_40px_rgba(236,72,153,0.10)] backdrop-blur-xl transition-all duration-400 ease-out ${
+              mobileOpen ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
+            }`}
+            style={{ transitionDelay: mobileOpen ? "60ms" : "0ms" }}
+          >
             <div className="flex items-center justify-between gap-2.5">
               <Link href="/" onClick={() => setMobileOpen(false)} className="flex min-w-0 items-center gap-2.5">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem] border border-pink-100 bg-white p-1.5 shadow-md shadow-pink-200/40">
-                  <Image
-                    src="/jasmintopup-logo.png"
-                    alt="JASMINTOPUP Logo"
-                    width={44}
-                    height={44}
-                    className="h-full w-full object-contain"
-                    priority
-                  />
-                </span>
+                <Image
+                  src="/jasmintopup-logo.png"
+                  alt="DyTopup Logo"
+                  width={60}
+                  height={44}
+                  className="h-11 w-auto object-contain"
+                  priority
+                />
                 <span className="min-w-0">
-                  <span className="block truncate text-[0.95rem] font-black tracking-tight text-pink-900">JASMINTOPUP</span>
+                  <span className="block truncate text-[0.95rem] font-black tracking-tight text-pink-900">DyTopup</span>
                   <span className="mt-0.5 block text-[9px] font-extrabold uppercase tracking-[0.26em] text-pink-400">Instant · Secure · 24/7</span>
                 </span>
               </Link>
@@ -262,6 +267,7 @@ export default function Header() {
             </div>
           </div>
 
+          {/* Navigation Links with staggered smooth slide-in */}
           <nav className="mt-3.5 grid gap-2.5">
             {NAV.map((item, index) => {
               const active = isNavActive(pathname, item.href);
@@ -270,8 +276,12 @@ export default function Header() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`mobile-drawer-nav-item mobile-drawer-fade group flex items-center justify-between overflow-hidden rounded-[1.35rem] border border-pink-300/80 bg-gradient-to-r from-pink-500 via-fuchsia-500 to-pink-500 px-3.5 py-3 text-white shadow-[0_16px_32px_rgba(236,72,153,0.24)] ${active ? "ring-2 ring-white/70" : ""}`}
-                  style={{ transitionDelay: mobileOpen ? `${70 + index * 40}ms` : "0ms" }}
+                  className={`group flex items-center justify-between overflow-hidden rounded-[1.35rem] border border-pink-300/80 bg-gradient-to-r from-pink-500 via-fuchsia-500 to-pink-500 px-3.5 py-3 text-white shadow-[0_16px_32px_rgba(236,72,153,0.24)] transition-all duration-400 ease-out active:scale-[0.98] ${
+                    active ? "ring-2 ring-white/70" : ""
+                  } ${
+                    mobileOpen ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0"
+                  }`}
+                  style={{ transitionDelay: mobileOpen ? `${100 + index * 45}ms` : "0ms" }}
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[1rem] border border-white/15 bg-white/16 text-white shadow-inner shadow-white/10 transition-all duration-500 group-hover:scale-105 group-hover:bg-white/22">
@@ -296,7 +306,13 @@ export default function Header() {
             })}
           </nav>
 
-          <div className="mt-3 mobile-drawer-fade rounded-[1.35rem] border border-pink-100/90 bg-white/80 p-3 shadow-[0_10px_24px_rgba(244,114,182,0.08)] backdrop-blur-md">
+          {/* Helper / Support card with smooth entry */}
+          <div
+            className={`mt-3 rounded-[1.35rem] border border-pink-100/90 bg-white/85 p-3.5 shadow-[0_10px_24px_rgba(244,114,182,0.08)] backdrop-blur-md transition-all duration-400 ease-out ${
+              mobileOpen ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+            }`}
+            style={{ transitionDelay: mobileOpen ? "280ms" : "0ms" }}
+          >
             <div className="flex items-center justify-between gap-2.5">
               <div className="min-w-0">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-pink-400">Helper</p>
@@ -312,7 +328,7 @@ export default function Header() {
 
             <div className="mt-2.5 grid grid-cols-2 gap-2.5">
               <a
-                href="https://t.me/JASMINTOPUP"
+                href="https://t.me/dytopup"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileOpen(false)}
@@ -325,11 +341,11 @@ export default function Header() {
                   </svg>
                 </span>
                 <span className="mt-2 block text-[12px] font-black text-pink-800">Telegram</span>
-                <span className="mt-0.5 block truncate text-[10px] font-bold text-pink-400">@JASMINTOPUP</span>
+                <span className="mt-0.5 block truncate text-[10px] font-bold text-pink-400">@dytopup</span>
               </a>
 
               <a
-                href="https://www.tiktok.com/@jasmintopup03"
+                href="https://www.tiktok.com/@dytopup"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileOpen(false)}
@@ -342,7 +358,7 @@ export default function Header() {
                   </svg>
                 </span>
                 <span className="mt-2 block text-[12px] font-black text-pink-800">TikTok</span>
-                <span className="mt-0.5 block truncate text-[10px] font-bold text-pink-400">@jasmintopup03</span>
+                <span className="mt-0.5 block truncate text-[10px] font-bold text-pink-400">@dytopup</span>
               </a>
             </div>
           </div>

@@ -70,10 +70,10 @@ export default function AdminLoginPage() {
 
           if (data.locked && data.forever) {
             setBanned(true);
-            setError("កូដ 2FA ខុស ២ លើក Lock ជាអចិន្ត្រៃយ៍ សូមទាក់ទង owner។");
+            setError("គណនីត្រូវបាន lock ជាអចិន្ត្រៃយ៍ សូមទាក់ទង owner។");
           } else if (data.locked && data.lockedUntil) {
             setLockedUntil(new Date(data.lockedUntil));
-            setError("កូដ 2FA ខុស លើកទី១ Lock 5 នាទី សូមរង់ចាំ។");
+            setError(`កូដ 2FA ខុស សូមរង់ចាំ ${data.retryAfter || "បន្តិច"}។`);
           }
 
           return;
@@ -94,7 +94,7 @@ export default function AdminLoginPage() {
               setError("គណនីត្រូវបាន lock ជាអចិន្ត្រៃយ៍។ សូមទាក់ទង owner។");
             } else if (loginData.lockedUntil) {
               setLockedUntil(new Date(loginData.lockedUntil));
-              setError("password ខុស លើកទី១ Lock 5 នាទី សូមរង់ចាំ។");
+              setError(`Password ខុស សូមរង់ចាំ ${loginData.retryAfter || "បន្តិច"}។`);
             }
           })
           .catch(() => {});
@@ -178,14 +178,21 @@ export default function AdminLoginPage() {
       const message = data.error || data.message || "";
 
       if (res.status === 403) {
-        setBanned(true);
-        setError(message || "គណនីត្រូវបាន lock ជាអចិន្ត្រៃយ៍");
+        if (data.forever) {
+          setBanned(true);
+          setError(message || "គណនីត្រូវបាន lock ជាអចិន្ត្រៃយ៍");
+        } else if (data.needsSetup) {
+          setError("2FA មិនទាន់ត្រូវបានកំណត់នៅឡើយទេ។ សូមចូលដោយផ្ទាល់។");
+          setStep("login");
+        } else {
+          setError(message || "គ្មានសិទ្ធិចូលប្រើ");
+        }
         return;
       }
 
       if (res.status === 429) {
         if (data.lockedUntil) setLockedUntil(new Date(data.lockedUntil));
-        setError(message || "កូដ 2FA ខុស លើកទី១ Lock 5 នាទី សូមរង់ចាំ។");
+        setError(message || "កូដ 2FA ខុសលើសកំណត់។ សូមរង់ចាំ។");
         return;
       }
 
@@ -282,7 +289,7 @@ export default function AdminLoginPage() {
           <span className="absolute inset-x-8 bottom-1 h-8 rounded-full bg-[#e91e63]/25 blur-2xl transition-transform duration-500 group-hover:scale-125" />
           <Image
             src="/jasmintopup-admin-logo.png"
-            alt="JASMINTOPUP Logo"
+            alt="DyTopup Logo"
             width={260}
             height={260}
             className="relative h-auto w-[170px] max-w-[58vw] drop-shadow-[0_18px_32px_rgba(196,24,92,0.25)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:scale-[1.035] sm:w-[220px]"
@@ -305,7 +312,7 @@ export default function AdminLoginPage() {
             </h1>
             <p className="mx-auto mt-2 max-w-sm text-sm font-semibold leading-6 text-[#9f5a77]">
               {step === "login"
-                ? "ប្រព័ន្ធគ្រប់គ្រង JASMINTOPUP មានសុវត្ថិភាព និងរចនាស្អាតជាងមុន"
+                ? "ប្រព័ន្ធគ្រប់គ្រង DyTopup មានសុវត្ថិភាព និងរចនាស្អាតជាងមុន"
                 : "Password ត្រឹមត្រូវហើយ។ សូមបញ្ចូលកូដ 2FA ដើម្បីបន្តចូល Admin Panel"}
             </p>
             <div className="mx-auto my-6 flex w-24 items-center justify-center gap-2">

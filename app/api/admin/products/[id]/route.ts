@@ -7,19 +7,33 @@ import { withAdminAuth } from "@/lib/withAdminAuth";
 import { writeAuditForAdmin } from "@/lib/audit";
 import { revalidateAdminChange } from "@/lib/adminRevalidate";
 
-const updateSchema = z.object({
-  gameId: z.string().min(1).optional(),
-  name: z.string().min(1).optional(),
-  amount: z.number().int().min(0).optional(),
-  bonus: z.number().int().min(0).optional(),
-  priceUsd: z.number().positive().optional(),
-  priceKhr: z.number().positive().nullable().optional(),
-  badge: z.string().nullable().optional(),
-  imageUrl: z.string().nullable().optional(),
-  active: z.boolean().optional(),
-  sortOrder: z.number().int().optional(),
-  supplierCode: z.string().nullable().optional(),
-});
+const updateSchema = z
+  .object({
+    gameId: z.string().min(1).optional(),
+    name: z.string().min(1).optional(),
+    amount: z.number().int().min(0).optional(),
+    bonus: z.number().int().min(0).optional(),
+    priceUsd: z.number().positive().optional(),
+    priceKhr: z.number().positive().nullable().optional(),
+    badge: z.string().nullable().optional(),
+    imageUrl: z.string().nullable().optional(),
+    active: z.boolean().optional(),
+    sortOrder: z.number().int().optional(),
+    supplier: z.enum(["bay2game", "khmer_topup"]).optional(),
+    supplierCode: z.string().nullable().optional(),
+    supplierProductCode: z.string().nullable().optional(),
+  })
+  .transform((data) => {
+    const code =
+      data.supplierProductCode !== undefined
+        ? data.supplierProductCode
+        : data.supplierCode;
+    const { supplierProductCode, ...rest } = data;
+    return {
+      ...rest,
+      ...(code !== undefined ? { supplierCode: code ? code.trim() : null } : {}),
+    };
+  });
 
 export const GET = withAdminAuth(
   async (_req, { params }: { params: Promise<{ id: string }> }) => {

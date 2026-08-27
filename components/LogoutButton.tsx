@@ -2,13 +2,17 @@
 
 import { useRouter } from "next/navigation";
 
-export default function LogoutButton() {
+export default function LogoutButton({
+  redirectTo = "/admin/dystore",
+}: {
+  redirectTo?: string;
+}) {
   const router = useRouter();
 
   async function handleLogout() {
     await fetch("/api/admin/auth", { method: "DELETE", credentials: "include" });
-    // ✅ ចាកចេញ → redirect ទៅ /admin/sophallogin
-    router.push("/admin/sophallogin");
+    // ✅ ចាកចេញ → redirect ទៅ admin login path (configured via ADMIN_LOGIN_PATH)
+    router.push(redirectTo);
     router.refresh();
   }
 
