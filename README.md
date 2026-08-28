@@ -1,18 +1,20 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/-RITHTOPUP-f97316?style=for-the-badge&labelColor=0f172a&logoColor=white" alt="DYTOPUP" />
+<img src="https://img.shields.io/badge/-DYTOPUP-e91e8c?style=for-the-badge&labelColor=0f172a&logoColor=white" alt="DYTOPUP" />
 
 ### ⚡ Instant game top-up storefront for Cambodia
 
-A production-ready **Next.js 14** platform for selling in-game credits — with KHQR payments, an admin control panel, and polished PDF invoices.
+A production-ready **Next.js 15 + React 19** platform for selling in-game credits — with KHQR payments, an admin control panel, and polished PDF invoices.
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?logo=prisma)](https://prisma.io)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://www.typescriptlang.org)
-[![Tailwind](https://img.shields.io/badge/Tailwind-3-38BDF8?logo=tailwindcss)](https://tailwindcss.com)
-[![License](https://img.shields.io/badge/License-Private-lightgrey)](#)
+[![Tailwind](https://img.shields.io/badge/Tailwind-4-38BDF8?logo=tailwindcss)](https://tailwindcss.com)
+[![Author](https://img.shields.io/badge/Author-SokPhal-e91e8c)](https://sophal.vercel.app/)
+[![License](https://img.shields.io/badge/License-Proprietary-pink)](#-license--copyright)
 
-[Features](#-features) · [Quick start](#-quick-start-5-minutes) · [Deploy to Vercel](#-deploy-to-vercel) · [Admin panel](#-admin-panel) · [Environment](#-environment-variables) · [Troubleshooting](#-troubleshooting)
+[Features](#-features) · [Quick start](#-quick-start-5-minutes) · [Deploy to Vercel](#-deploy-to-vercel) · [Admin panel](#-admin-panel) · [Environment](#-environment-variables) · [License](#-license--copyright)
 
 </div>
 
@@ -108,8 +110,8 @@ jose (JWT)  ·  bcryptjs  ·  pdfkit  ·  zod
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/angkerith1/rithtopup-site.git
-cd rithtopup-site
+git clone https://github.com/your-username/dytopup-site.git
+cd dytopup-site
 npm install
 ```
 
@@ -147,8 +149,8 @@ The seed creates your first admin account using `ADMIN_EMAIL` + `ADMIN_PASSWORD`
 npm run dev
 ```
 
-Open **http://localhost:3000** — storefront.
-Open **http://localhost:3000/admin/login** — admin panel.
+Open **http://localhost:3000** — storefront.  
+Open **http://localhost:3000/admin/dystore** — admin panel.
 
 ✅ That's it. In simulation mode, paying for an order auto-completes after 3 seconds so you can test the full flow without Tola Saint credentials.
 
@@ -168,7 +170,7 @@ Copy the connection string (must end with `?sslmode=require`).
 ### Step 2 — Import the repo into Vercel
 
 1. Go to **[vercel.com/new](https://vercel.com/new)**
-2. Import `angkerith1/rithtopup-site`
+2. Import your repository (`dytopup-site`)
 3. Framework preset: **Next.js** (auto-detected)
 4. **Build Command:** leave as default (`npm run build`). Do **not** add `prisma db push` — run schema pushes from your laptop only.
 5. **Do not deploy yet** — add environment variables first ↓
@@ -235,7 +237,7 @@ DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
 
 # Auth
 ADMIN_JWT_SECRET="<32+ char random string>"
-ADMIN_EMAIL="admin@rithtopup.com"
+ADMIN_EMAIL="admin@dytopup.com"
 ADMIN_PASSWORD="ChangeMeNow123!"
 
 # Tola Saint payment (leave API key blank to use simulation mode)
@@ -357,15 +359,19 @@ For testing only, set `PAYMENT_SIMULATION_MODE=true` in Vercel, to keep the chec
 
 ---
 
-## 📄 License
+## 📄 License & Copyright
 
-Private — © RITHTOPUP. All rights reserved.
+**Copyright © 2026 DyTopup (SokPhal). All Rights Reserved.**
+
+Developed & Maintained by **[SokPhal](https://sophal.vercel.app/)** for **DyTopup**.
+
+This project and its source code are proprietary and confidential. Unauthorized copying, distribution, reproduction, or modification of this project, in whole or in part, via any medium is strictly prohibited without explicit written permission from the owner.
 
 ---
 
 <div align="center">
 
-Built with ⚡ for the Cambodian gaming community.
-Support: **[@rithtopup](https://t.me/rithtopup)** on Telegram.
+Built with ⚡ for the Cambodian gaming community by **[SokPhal](https://sophal.vercel.app/)**.  
+Support: **[@dytopup](https://t.me/dytopup)** on Telegram · Portfolio: **[sophal.vercel.app](https://sophal.vercel.app/)**
 
 </div>
