@@ -6,6 +6,7 @@ import { isValidUid, isValidServerId, formatUsd } from "@/lib/utils";
 import { useCurrency } from "@/lib/currency";
 import { QrCode, ArrowRight, Lock, Check, Smartphone, Search, UserRoundCheck, AlertCircle, Tag, Loader2,  } from "lucide-react";
 import KHQRBottomSheet from "@/components/KHQRBottomSheet";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 
 // Games that support automatic nickname lookup via /api/lookup-uid
 const LOOKUP_SLUGS = new Set(["mobile-legends", "free-fire", "honor-of-king", "honor-of-kings", "pubg-mobile", "pubgm", "pubgm-lite", "blood-strike", "magic-chess", "magic-chess-go", "mcgg", "ro-blox"]);
@@ -46,6 +47,14 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
   const [method, setMethod] = useState<"TOLASAINT">("TOLASAINT");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 🛡️ Cloudflare Turnstile state
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
+  const turnstileSiteKey =
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY_PUBLIC ||
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
+    (process.env.NODE_ENV !== "production" ? "1x00000000000000000000AA" : "");
 
   // Dismissed state — persists across page refresh via sessionStorage
   const [dismissed, setDismissed] = useState(false);
@@ -135,8 +144,9 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
     !!selected &&
     isValidUid(uid) &&
     (!needsServer || serverId.trim().length > 0) &&
-    (!needsNickname || nicknameStatus === "verified")  &&
-  termsAccepted;
+    (!needsNickname || nicknameStatus === "verified") &&
+    termsAccepted &&
+    (!turnstileSiteKey || !!turnstileToken);
 
   async function applyPromo() {
     if (!promoInput.trim() || !selectedProduct) return;
@@ -173,6 +183,12 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit || submitting) return;
+
+    if (turnstileSiteKey && !turnstileToken) {
+      setError("សូមផ្ទៀងផ្ទាត់សុវត្ថិភាព (Turnstile Bot Check) ជាមុនសិន។");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -188,18 +204,23 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
           paymentMethod: method,
           promoCode: promoApplied?.code || undefined,
           playerNickname: nickname || undefined,
+          turnstileToken: turnstileToken || undefined,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
+        turnstileRef.current?.reset();
+        setTurnstileToken(null);
         throw new Error(data.error || "Failed to create order");
       }
 
       const orderNumber = data.orderNumber || data.order?.orderNumber;
 
       if (!orderNumber) {
+        turnstileRef.current?.reset();
+        setTurnstileToken(null);
         throw new Error("Order number not returned from API");
       }
 
@@ -211,15 +232,21 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
       const orderData = await orderRes.json();
 
       if (!orderRes.ok) {
+        turnstileRef.current?.reset();
+        setTurnstileToken(null);
         throw new Error(orderData.error || "Failed to load payment QR");
       }
 
       // ✅ Open KHQR popup instead of redirect
       setPaymentPopup(orderData);
       setSubmitting(false);
+      turnstileRef.current?.reset();
+      setTurnstileToken(null);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
       setSubmitting(false);
+      turnstileRef.current?.reset();
+      setTurnstileToken(null);
     }
   }
 
@@ -526,33 +553,57 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                 </div>
               </button>
               <div className="mt-3 flex items-center gap-2 rounded-xl border border-pink-200 bg-white/70 px-4 py-3">
-  <button
-    type="button"
-    onClick={() => setTermsAccepted((v) => !v)}
-    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors ${
-      termsAccepted
-        ? "border-pink-500 bg-pink-500"
-        : "border-pink-300 bg-white"
-    }`}
-    aria-label="Accept terms"
-  >
-    {termsAccepted && (
-      <Check className="h-3 w-3 text-white" strokeWidth={3} />
-    )}
-  </button>
+                <button
+                  type="button"
+                  onClick={() => setTermsAccepted((v) => !v)}
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors ${
+                    termsAccepted
+                      ? "border-pink-500 bg-pink-500"
+                      : "border-pink-300 bg-white"
+                  }`}
+                  aria-label="Accept terms"
+                >
+                  {termsAccepted && (
+                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                  )}
+                </button>
 
-  <span className="text-xs font-semibold text-pink-600">
-    ខ្ញុំព្រមជាមួយ{" "}
-    <a
-      href="/Terms-of-service"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="underline hover:text-pink-800"
-    >
-      លក្ខខណ្ឌ
-    </a>
-  </span>
-</div>
+                <span className="text-xs font-semibold text-pink-600">
+                  ខ្ញុំព្រមជាមួយ{" "}
+                  <a
+                    href="/Terms-of-service"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-pink-800"
+                  >
+                    លក្ខខណ្ឌ
+                  </a>
+                </span>
+              </div>
+
+              {/* 🛡️ Cloudflare Turnstile Invisible Bot Protection */}
+              {turnstileSiteKey && (
+                <div className="hidden" aria-hidden="true">
+                  <Turnstile
+                    ref={turnstileRef}
+                    siteKey={turnstileSiteKey}
+                    options={{
+                      size: "invisible",
+                      action: "create_order",
+                    }}
+                    onSuccess={(token) => {
+                      setTurnstileToken(token);
+                      setError(null);
+                    }}
+                    onError={() => {
+                      setTurnstileToken(null);
+                    }}
+                    onExpire={() => {
+                      setTurnstileToken(null);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -645,10 +696,15 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                 <p className="mt-4 text-xs text-pink-400 text-center">🔍 សូមពិនិត្យឈ្មោះ Player មុន</p>
               )}
               {!termsAccepted && (
-  <p className="mt-2 text-xs text-pink-400 text-center">
-    សូមចុច ✓ យល់ព្រមលក្ខខណ្ឌមុនបង់ប្រាក់
-  </p>
-)}
+                <p className="mt-2 text-xs text-pink-400 text-center">
+                  សូមចុច ✓ យល់ព្រមលក្ខខណ្ឌមុនបង់ប្រាក់
+                </p>
+              )}
+              {turnstileSiteKey && !turnstileToken && selected && (
+                <p className="mt-2 text-xs text-pink-500 text-center font-medium">
+                  🛡️ កំពុងផ្ទៀងផ្ទាត់សុវត្ថិភាព…
+                </p>
+              )}
 
               <button
                 type="submit"
@@ -671,8 +727,6 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
       {/* Mobile sticky bottom */}
       {!dismissed && (
         <div className="relative lg:hidden card p-5 sticky bottom-3 mt-8 border border-pink-400/30 shadow-2xl shadow-pink-300/10 backdrop-blur-md">
-
-          
 
           {selectedProduct && (
             <div className="flex justify-between items-center mb-4 pr-8">
@@ -714,12 +768,17 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
             <p className="mb-2 text-xs text-pink-400 text-center">👆 សូមជ្រើសរើសកញ្ចប់មុន</p>
           )}
           {!termsAccepted && (
-  <p className="mb-2 text-xs text-pink-400 text-center">
-    សូមចុច ✓ យល់ព្រមលក្ខខណ្ឌមុនបង់ប្រាក់
-  </p>
-)}
+            <p className="mb-2 text-xs text-pink-400 text-center">
+              សូមចុច ✓ យល់ព្រមលក្ខខណ្ឌមុនបង់ប្រាក់
+            </p>
+          )}
           {selected && needsNickname && nicknameStatus !== "verified" && isValidUid(uid) && (
             <p className="mb-2 text-xs text-pink-400 text-center">🔍 សូមពិនិត្យឈ្មោះ Player មុន</p>
+          )}
+          {turnstileSiteKey && !turnstileToken && selected && (
+            <p className="mb-2 text-xs text-pink-500 text-center font-medium">
+              🛡️ កំពុងផ្ទៀងផ្ទាត់សុវត្ថិភាព…
+            </p>
           )}
 
           <button

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { applyRateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getIp";
 import { withAdminAuth } from "@/lib/withAdminAuth";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -20,6 +21,7 @@ const createOrderSchema = z.object({
   paymentMethod: z.enum(["TOLASAINT", "ABA", "ACLEDA", "WING"]),
   promoCode: z.string().optional(),
   playerNickname: z.string().max(100).optional(),
+  turnstileToken: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -39,6 +41,24 @@ export async function POST(req: NextRequest) {
       );
     }
     const data = parsed.data;
+
+    // 🛡️ Cloudflare Turnstile Bot Validation:
+    // Verify token BEFORE executing any database queries or external banking API calls
+    const isBotChallengePassed = await verifyTurnstileToken({
+      req,
+      token: data.turnstileToken || "",
+      kind: "public",
+      expectedAction: "create_order",
+    });
+
+    if (!isBotChallengePassed) {
+      return NextResponse.json(
+        {
+          error: "ការផ្ទៀងផ្ទាត់សុវត្ថិភាពមិនជោគជ័យ (Bot verification failed). សូម refresh ទំព័រ រួចសាកល្បងម្ដងទៀត។",
+        },
+        { status: 403 }
+      );
+    }
 
     if (!isValidUid(data.playerUid)) {
       return NextResponse.json({ error: "Invalid UID format" }, { status: 400 });

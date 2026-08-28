@@ -10,6 +10,7 @@ import { logSecurityEvent } from "@/lib/secureLogger";
 import { ADMIN_COOKIE_NAME } from "@/lib/auth";
 import { getLockDurationMs, formatLockDuration } from "@/lib/lockPolicy";
 import { adminApiErrorResponse } from "@/lib/adminApiError";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,6 +18,7 @@ export const runtime = "nodejs";
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  turnstileToken: z.string().optional(),
 });
 
 const PENDING_2FA_COOKIE = "admin_2fa_pending";
@@ -119,6 +121,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 400, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+
+    // 🛡️ Cloudflare Turnstile Bot Protection for Admin Login
+    const isBotChallengePassed = await verifyTurnstileToken({
+      req,
+      token: parsed.data.turnstileToken || "",
+      kind: "admin",
+      expectedAction: "admin_login",
+    });
+
+    if (!isBotChallengePassed) {
+      return NextResponse.json(
+        { error: "ការផ្ទៀងផ្ទាត់សុវត្ថិភាព Turnstile មិនជោគជ័យ។ សូមព្យាយាមម្តងទៀត។" },
+        { status: 403, headers: { "Cache-Control": "no-store" } }
       );
     }
 

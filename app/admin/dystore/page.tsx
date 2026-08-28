@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, useRef, type FormEvent, type ReactNode } from "react";
 import AdminClickSound from "@/components/AdminClickSound";
 import AdminMouseEffect from "@/components/AdminMouseEffect";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -35,6 +36,15 @@ export default function AdminLoginPage() {
   const [banned, setBanned] = useState(false);
   const [lockedUntil, setLockedUntil] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState<string>("");
+
+  // 🛡️ Cloudflare Turnstile Non-Interactive state
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
+  const turnstileSiteKey =
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY_ADMIN ||
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY_PUBLIC ||
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
+    (process.env.NODE_ENV !== "production" ? "1x00000000000000000000AA" : "");
 
   useEffect(() => {
     if (!lockedUntil) {
@@ -108,6 +118,11 @@ export default function AdminLoginPage() {
     e.preventDefault();
     if (isLocked || loading) return;
 
+    if (turnstileSiteKey && !turnstileToken) {
+      setError("សូមផ្ទៀងផ្ទាត់ Turnstile Bot Check ជាមុនសិន។");
+      return;
+    }
+
     setError(null);
     setLoading(true);
 
@@ -121,24 +136,31 @@ export default function AdminLoginPage() {
         body: JSON.stringify({
           email: email.trim(),
           password,
+          turnstileToken: turnstileToken || undefined,
         }),
       });
 
       const data = await res.json().catch(() => ({}));
 
       if (res.status === 403) {
+        turnstileRef.current?.reset();
+        setTurnstileToken(null);
         setBanned(true);
         setError(data.error || "គណនីត្រូវបាន lock ជាអចិន្ត្រៃយ៍");
         return;
       }
 
       if (res.status === 429) {
+        turnstileRef.current?.reset();
+        setTurnstileToken(null);
         if (data.lockedUntil) setLockedUntil(new Date(data.lockedUntil));
         setError(data.error || "Lock បណ្ដោះអាសន្ន។ សូមរង់ចាំ។");
         return;
       }
 
       if (!res.ok) {
+        turnstileRef.current?.reset();
+        setTurnstileToken(null);
         throw new Error(data.error || "មានបញ្ហាក្នុងការចូល");
       }
 
@@ -153,6 +175,8 @@ export default function AdminLoginPage() {
       router.push("/admin");
       router.refresh();
     } catch (err) {
+      turnstileRef.current?.reset();
+      setTurnstileToken(null);
       setError(err instanceof Error ? err.message : "មានបញ្ហាក្នុងការចូល");
     } finally {
       setLoading(false);
@@ -368,7 +392,36 @@ export default function AdminLoginPage() {
 
               <LoginError error={error} banned={banned} countdown={countdown} />
 
-              <button type="submit" className={submitBtnCls} disabled={loading || isLocked}>
+              {/* 🛡️ Non-interactive Turnstile Bot Protection */}
+              {turnstileSiteKey && (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-pink-200/60 bg-white/70 p-2 shadow-sm">
+                  <Turnstile
+                    ref={turnstileRef}
+                    siteKey={turnstileSiteKey}
+                    options={{
+                      theme: "light",
+                      size: "normal",
+                      action: "admin_login",
+                    }}
+                    onSuccess={(token) => {
+                      setTurnstileToken(token);
+                      setError(null);
+                    }}
+                    onError={() => {
+                      setTurnstileToken(null);
+                    }}
+                    onExpire={() => {
+                      setTurnstileToken(null);
+                    }}
+                  />
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className={submitBtnCls}
+                disabled={loading || isLocked || (!!turnstileSiteKey && !turnstileToken)}
+              >
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                 {loading ? (
                   <>
