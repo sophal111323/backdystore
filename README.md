@@ -1,90 +1,110 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/-DYTOPUP-e91e8c?style=for-the-badge&labelColor=0f172a&logoColor=white" alt="DYTOPUP" />
+<br />
 
-### ⚡ Instant game top-up storefront for Cambodia
+```
+  ██████╗  ██╗   ██╗ ████████╗  ██████╗  ██████╗  ██╗   ██╗ ██████╗ 
+  ██╔══██╗ ╚██╗ ██╔╝ ╚══██╔══╝ ██╔═══██╗ ██╔══██╗ ██║   ██║ ██╔══██╗
+  ██║  ██║  ╚████╔╝     ██║    ██║   ██║ ██████╔╝ ██║   ██║ ██████╔╝
+  ██║  ██║   ╚██╔╝      ██║    ██║   ██║ ██╔═══╝  ██║   ██║ ██╔═══╝ 
+  ██████╔╝    ██║       ██║    ╚██████╔╝ ██║      ╚██████╔╝ ██║     
+  ╚═════╝     ╚═╝       ╚═╝     ╚═════╝  ╚═╝       ╚═════╝  ╚═╝     
+```
 
-A production-ready **Next.js 15 + React 19** platform for selling in-game credits — with KHQR payments, an admin control panel, and polished PDF invoices.
+### ⚡ Premium Instant Game Top-Up Platform for Cambodia 🇰🇭
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
-[![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?logo=prisma)](https://prisma.io)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://www.typescriptlang.org)
-[![Tailwind](https://img.shields.io/badge/Tailwind-4-38BDF8?logo=tailwindcss)](https://tailwindcss.com)
-[![Author](https://img.shields.io/badge/Author-SokPhal-e91e8c)](https://sophal.vercel.app/)
-[![License](https://img.shields.io/badge/License-Proprietary-pink)](#-license--copyright)
+*Fast, secure, automated game currency delivery powered by KHQR payments & Next.js 15.*
 
-[Features](#-features) · [Quick start](#-quick-start-5-minutes) · [Deploy to Vercel](#-deploy-to-vercel) · [Admin panel](#-admin-panel) · [Environment](#-environment-variables) · [License](#-license--copyright)
+<br />
+
+[![Next.js](https://img.shields.io/badge/Next.js-15.1-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19.0-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Prisma](https://img.shields.io/badge/Prisma-5.22-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://prisma.io)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech)
+
+<br />
+
+[![Developer](https://img.shields.io/badge/Developer-SokPhal-e91e8c?style=flat-square&logo=visual-studio-code&logoColor=white)](https://sophal.vercel.app/)
+[![Telegram Support](https://img.shields.io/badge/Telegram-@dytopup-24A1DE?style=flat-square&logo=telegram&logoColor=white)](https://t.me/dytopup)
+[![License](https://img.shields.io/badge/License-Proprietary-pink?style=flat-square)](#-license--copyright)
+
+<br />
+
+[✨ Core Features](#-core-features) • [⚡ 5-Min Quickstart](#-5-minute-quickstart) • [🛠️ Admin Control](#️-admin-control-center) • [🔐 Security Architecture](#-security-architecture) • [🚀 Deployment](#-deployment-guide) • [📄 License](#-license--copyright)
 
 </div>
 
----
-
-## 📦 Final DY_DASHBOARD Deployment Guide
-
-This project now includes the connected Flutter admin app in `dytopup_dashboard/`.
-
-For the final release checklist, backend deployment, Flutter Android/iOS build commands, production environment variables, and security checklist, read:
-
-- [`STEP16_FINAL_DEPLOYMENT_INSTRUCTIONS.md`](./STEP16_FINAL_DEPLOYMENT_INSTRUCTIONS.md)
-- [`STEP16_FINAL_SUMMARY.md`](./STEP16_FINAL_SUMMARY.md)
-
-
-## 🎯 What is this?
-
-**DYTOPUP** lets customers buy Diamonds / UC / Genesis Crystals / game passes using a single KHQR code scannable by **every major Cambodian bank app** — ABA Pay, ACLEDA Pay, Wing, TrueMoney, Chip Mong, Prince Bank, and more.
-
-| Customer side | Admin side |
-|---|---|
-| Browse featured games | Manage games, products, orders |
-| Pick a package + enter UID | Approve / fulfil / refund orders |
-| Pay via KHQR (180s expiry) | Hero banners, FAQ, blog, banlist |
-| Track status live (3s poll) | Revenue chart, customers, audit log |
-| Download branded PDF invoice | Telegram notifications on new orders |
+<br />
 
 ---
 
-## ✨ Features
+## 🎯 Overview
 
-<table>
+**DyTopup** is a modern, high-concurrency top-up ecosystem tailored for Cambodian gamers and digital merchants. Customers purchase in-game currencies (Mobile Legends Diamonds, Free Fire Diamonds, PUBG Mobile UC, Roblox Robux, and more) using dynamic **KHQR (Bakong / ABA / ACLEDA)** with real-time automated delivery dispatched straight to upstream providers (**Khmer TopUp** & **Bay2Game**).
+
+```
+┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
+│   Customer UI   │ ────► │  DyTopup Engine │ ────► │   KHQR Gateway  │
+│  (Next.js App)  │       │ (Prisma + Neon) │       │ (Tola Saint/ABA)│
+└─────────────────┘       └────────┬────────┘       └─────────────────┘
+                                   │
+                                   ▼
+┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
+│  Telegram Alert │ ◄──── │ Top-up Supplier │ ◄──── │ Automated Order │
+│ (1-Msg Summary) │       │ (Khmer TopUp)   │       │   Fulfillment   │
+└─────────────────┘       └─────────────────┘       └─────────────────┘
+```
+
+---
+
+## ✨ Core Features
+
+<table width="100%">
 <tr>
 <td width="50%" valign="top">
 
-### 🛒 Storefront
-- Mobile-first landing page with hero carousel
-- Game catalog + per-game product pages
-- Live UID / server validation hooks
-- USD ↔ KHR currency switcher
-- Site-wide announcement bar
-- Public FAQ & blog pages
-- Order tracking with animated timeline
-
-### 💳 Payments
-- **Tola Saint** integration (KHQR)
-- 180-second expiring QR codes
-- HMAC-SHA256 webhook signing
-- Auto-poll fallback when webhooks fail
-- Simulation mode for local dev (no API key needed)
+### 🛍️ Customer Experience
+- 🎮 **Game Catalog:** Dynamic grid with custom badges (Hot, Best, Pass).
+- 🆔 **Real-Time Validation:** Automatic Player UID & server verification.
+- 💱 **Currency Switcher:** Seamless live toggle between USD ($) and KHR (៛).
+- 🔍 **Live Order Tracking:** 3-second polling with animated status timelines.
+- 🧾 **PDF Invoices:** Server-rendered branded invoices generated with `pdfkit`.
+- 📱 **Mobile Spring Animations:** Fluid iOS-style drawer navigation.
 
 </td>
 <td width="50%" valign="top">
 
-### 🛠️ Admin panel
-- Email/password login (JWT cookie)
-- Full CRUD: games, products, orders
-- Drag-free up/down reorder
-- Hero banners, FAQ, blog posts
-- Customer list (aggregated from orders)
-- Email/phone/UID banlist
-- Audit log of every admin action
-- CSV export + Tola Saint refresh button
+### 🛡️ Admin Command Center
+- 🔐 **Obfuscated Login:** Stealth access route with progressive lockout.
+- 📦 **Catalog Management:** Reorderable games, packages & banners.
+- 📊 **Revenue Analytics:** Daily charts, transaction volume & top games.
+- 🚫 **Security Banlist:** Instant IP, UID, Phone, and Email blacklist.
+- 📜 **Tamper-Proof Audit:** Structured log tracking every administrative action.
+- 📱 **Flutter Companion:** Native Android/iOS companion app (`dytopup_dashboard`).
 
-### 📄 Invoices
-- Generated server-side with `pdfkit`
-- A4 layout, brand-coloured header
-- Order details, items table, totals
-- Rotated **PAID** stamp
-- Customer + admin can download
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 💳 Payments & Automation
+- 🇰🇭 **Universal KHQR:** Scannable across all 30+ Cambodian banking apps.
+- ⏱️ **Dynamic QR Expiry:** Precise 180s countdown with auto-cancellation.
+- 🤖 **Auto-Delivery:** Instant dispatch via Khmer TopUp and Bay2Game APIs.
+- 🔒 **HMAC Verification:** Webhook signature authentication preventing replay.
+- 🧪 **Simulation Mode:** Built-in sandbox mode for zero-cost local testing.
+
+</td>
+<td width="50%" valign="top">
+
+### ⚡ Infrastructure & Security
+- 🛡️ **Progressive Lockout:** 3 fails = 1 min, 4 fails = 5 min, 5+ = progressive lock.
+- 📩 **Unified Telegram Bot:** Clean 1-message alert for payment + topup status.
+- 🍪 **SameSite=Strict Cookies:** Bulletproof CSRF & session hijacking defense.
+- 🌐 **Content Security Policy:** Nonce-based CSP guarding against XSS.
+- 🚀 **Tailwind CSS v4:** Ultra-optimized styling engine with Turbopack.
 
 </td>
 </tr>
@@ -92,48 +112,45 @@ For the final release checklist, backend deployment, Flutter Android/iOS build c
 
 ---
 
-## 🧱 Tech stack
+## ⚡ 5-Minute Quickstart
 
-```
-Next.js 14 (App Router)  ·  React 18  ·  TypeScript (strict)
-Prisma 5  ·  SQLite (dev) / PostgreSQL (prod)
-Tailwind CSS 3  ·  lucide-react icons
-jose (JWT)  ·  bcryptjs  ·  pdfkit  ·  zod
-```
-
----
-
-## ⚡ Quick start (5 minutes)
-
-> **Requires** Node.js 20+, npm, and a Postgres database (free: [Neon](https://neon.tech) / [Supabase](https://supabase.com)).
-
-### 1. Clone & install
+### 1. Clone Repository & Install Dependencies
 
 ```bash
-git clone https://github.com/your-username/dytopup-site.git
-cd dytopup-site
+git clone https://github.com/sophal111323/backdystore.git
+cd backdystore
 npm install
 ```
 
-### 2. Create your `.env`
+### 2. Configure Environment Variables
 
 ```bash
 cp .env.example .env
 ```
 
-Open `.env` and set at minimum:
+Set your minimum environment keys in `.env`:
 
 ```env
-DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
-ADMIN_JWT_SECRET="$(openssl rand -base64 32)"
-ADMIN_EMAIL="you@example.com"
-ADMIN_PASSWORD="YourStrongPassword!"
+# Database (Neon / Supabase Serverless Postgres)
+DATABASE_URL="postgresql://user:password@ep-sample.ap-southeast-1.neon.tech/dytopup?sslmode=require"
+
+# Security & Admin Authentication
+ADMIN_JWT_SECRET="generate-a-super-secret-32-character-key-here"
+ADMIN_EMAIL="admin@dytopup.com"
+ADMIN_PASSWORD="YourSecurePassword123!@#"
+
+# Payment Gateway (Tola Saint / Sandbox)
 PAYMENT_SIMULATION_MODE="true"
+TOLA_SAINT_BASE_URL="https://api.tolasaint.com"
+TOLA_SAINT_API_KEY=""
+TOLA_SAINT_WEBHOOK_SECRET=""
+
+# Public Application URLs
+NEXT_PUBLIC_BASE_URL="http://localhost:3000"
+PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-> 💡 Get a free Postgres URL in 30 seconds from [neon.tech](https://neon.tech) — pick **Create Project** and copy the connection string shown.
-
-### 3. Set up the database
+### 3. Initialize Database & Seed
 
 ```bash
 npx prisma generate
@@ -141,221 +158,99 @@ npx prisma db push
 npm run db:seed
 ```
 
-The seed creates your first admin account using `ADMIN_EMAIL` + `ADMIN_PASSWORD`, plus a few demo games.
-
-### 4. Run it
+### 4. Launch Development Server
 
 ```bash
 npm run dev
 ```
 
-Open **http://localhost:3000** — storefront.  
-Open **http://localhost:3000/admin/dystore** — admin panel.
-
-✅ That's it. In simulation mode, paying for an order auto-completes after 3 seconds so you can test the full flow without Tola Saint credentials.
+* 🌐 **Storefront:** [http://localhost:3000](http://localhost:3000)
+* 🔒 **Admin Portal:** [http://localhost:3000/admin/dystore](http://localhost:3000/admin/dystore)
 
 ---
 
-## 🚀 Deploy to Vercel
+## 🛠️ Admin Control Center
 
-### Step 1 — Create a Postgres database
+| Route | Functionality | Access Level |
+| :--- | :--- | :---: |
+| `/admin` | Main Dashboard & Live Sales Statistics | `Admin` |
+| `/admin/games` | Game Management (Add, Edit, Reorder, Badges) | `Admin` |
+| `/admin/products` | Top-Up Package Pricing & Supplier Mapping | `Admin` |
+| `/admin/orders` | Live Transactions, Status Sync & CSV Export | `Admin` |
+| `/admin/banners` | Homepage Hero Slider & Promotions | `Admin` |
+| `/admin/customers` | Aggregated Customer Directory & Lifetime Spend | `Admin` |
+| `/admin/banlist` | Fraud Prevention & Entity Blacklist (IP/UID) | `SuperAdmin` |
+| `/admin/audit-logs` | Immutable Audit Trail of Admin Operations | `SuperAdmin` |
+| `/admin/settings` | Branding, Announcement Bar & Maintenance Gate | `SuperAdmin` |
 
-If you haven't already (see Quick Start), pick one — all have free tiers:
+---
 
-- **[Neon](https://neon.tech)** — recommended, instant setup
-- **[Supabase](https://supabase.com)** · **[Vercel Postgres](https://vercel.com/storage/postgres)**
+## 🔐 Security Architecture
 
-Copy the connection string (must end with `?sslmode=require`).
+```
+                                  ┌───────────────────────────┐
+                                  │      Incoming Request     │
+                                  └─────────────┬─────────────┘
+                                                │
+                                                ▼
+                                  ┌───────────────────────────┐
+                                  │  Edge Security Middleware │
+                                  │  (CSP Nonce, Strict Headers)│
+                                  └─────────────┬─────────────┘
+                                                │
+                     ┌──────────────────────────┴──────────────────────────┐
+                     ▼                                                     ▼
+        ┌─────────────────────────┐                           ┌─────────────────────────┐
+        │     Public Endpoints    │                           │     Admin Endpoints     │
+        │  • Zod Schema Validator │                           │  • SameSite=Strict Auth │
+        │  • IP Rate Limiter      │                           │  • Progressive Lockout  │
+        │  • Anti-IDOR Masking    │                           │  • RBAC Permission Gate │
+        └─────────────────────────┘                           └─────────────────────────┘
+```
 
-### Step 2 — Import the repo into Vercel
+- 🛡️ **Progressive Lock Policy:** Brute-force mitigation algorithm (Fails 1-2: 0s, Fail 3: 1 min, Fail 4: 5 min, Fail 5+: 15-30 min).
+- 🍪 **Stateless Hybrid Session:** HttpOnly JWT with database `admin.active` revocation verification on every request.
+- ⚡ **Anti-SSRF Protection:** Outgoing requests are constrained strictly to predefined supplier hostnames.
+- 🛡️ **Upload Hardening:** Magic-byte inspection, file size capping (5MB), and SVG elimination to prevent stored XSS.
 
-1. Go to **[vercel.com/new](https://vercel.com/new)**
-2. Import your repository (`dytopup-site`)
-3. Framework preset: **Next.js** (auto-detected)
-4. **Build Command:** leave as default (`npm run build`). Do **not** add `prisma db push` — run schema pushes from your laptop only.
-5. **Do not deploy yet** — add environment variables first ↓
+---
 
-### Step 4 — Add environment variables
+## 🚀 Deployment Guide
 
-In **Vercel → Settings → Environment Variables**, add for **Production + Preview**:
+### Deploying to Vercel (Recommended)
 
-| Variable | Example / how to get it |
-|---|---|
-| `DATABASE_URL` | Your Postgres connection string |
-| `ADMIN_JWT_SECRET` | Run `openssl rand -base64 32` |
-| `ADMIN_EMAIL` | Your admin login email |
-| `ADMIN_PASSWORD` | Strong password (used on first seed only) |
-| `TOLA_SAINT_BASE_URL` | `https://api.tolasaint.com` |
-| `TOLA_SAINT_API_KEY` | From [tolasaint.com](https://tolasaint.com) dashboard |
-| `TOLA_SAINT_WEBHOOK_SECRET` | Generated in Tola Saint dashboard |
-| `NEXT_PUBLIC_BASE_URL` | `https://your-domain.vercel.app` (no trailing slash) |
-| `PUBLIC_APP_URL` | Same as `NEXT_PUBLIC_BASE_URL` |
-| `PAYMENT_SIMULATION_MODE` | `false` for real payments, `true` for testing |
-| `TELEGRAM_BOT_TOKEN` | *(optional)* for new-order notifications |
-| `TELEGRAM_CHAT_ID` | *(optional)* chat or channel ID |
-
-### Step 5 — Deploy & configure Tola Saint webhook
-
-1. Click **Deploy** in Vercel — wait for the build to finish
-2. In your **Tola Saint dashboard**, set webhook URL to:
+1. Push your repository to GitHub (`main` branch).
+2. Import the project into **[Vercel Dashboard](https://vercel.com/new)**.
+3. Configure Environment Variables (`DATABASE_URL`, `ADMIN_JWT_SECRET`, etc.).
+4. Set Build Command to `npm run build` and deploy!
+5. In your **Tola Saint Dashboard**, point your Webhook URL to:
    ```
    https://your-domain.vercel.app/api/payment/webhook/tolasaint
    ```
-3. Visit `https://your-domain.vercel.app/admin/login` and sign in with your `ADMIN_EMAIL` / `ADMIN_PASSWORD`
-4. Go to **Admin → Games / Products** and configure your catalog
-
-🎉 **You're live.**
 
 ---
 
-## 🧑‍💼 Admin panel
-
-| Path | What it does |
-|---|---|
-| `/admin` | Dashboard — revenue sparkline, quick links |
-| `/admin/games` | Add / edit / reorder games |
-| `/admin/products` | Manage top-up packages per game |
-| `/admin/orders` | All orders, CSV export, clear-all |
-| `/admin/orders/[number]` | Order detail, refund, refresh from gateway |
-| `/admin/banners` | Homepage hero carousel |
-| `/admin/faqs` | FAQ manager (public at `/faq`) |
-| `/admin/blog` | Blog posts (public at `/blog`) |
-| `/admin/customers` | Customers aggregated from orders |
-| `/admin/banlist` | Block emails, phones, UIDs, IPs |
-| `/admin/audit-logs` | Every admin mutation, paginated |
-| `/admin/settings` | Site branding, announcement, maintenance mode, Telegram |
-
----
-
-## 🔑 Environment variables
-
-All variables documented in [`.env.example`](.env.example). The essential ones:
-
-```env
-# Database
-DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
-
-# Auth
-ADMIN_JWT_SECRET="<32+ char random string>"
-ADMIN_EMAIL="admin@dytopup.com"
-ADMIN_PASSWORD="ChangeMeNow123!"
-
-# Tola Saint payment (leave API key blank to use simulation mode)
-TOLA_SAINT_BASE_URL="https://api.tolasaint.com"
-TOLA_SAINT_API_KEY=""
-TOLA_SAINT_WEBHOOK_SECRET=""
-
-# URLs
-NEXT_PUBLIC_BASE_URL="http://localhost:3000"
-PUBLIC_APP_URL=""                         # same as NEXT_PUBLIC_BASE_URL in prod
-
-# Dev flag
-PAYMENT_SIMULATION_MODE="true"            # auto-completes payments after 3s
-TOLA_SAINT_PROVIDER="aba"                     # optional: "aba" or "bakong"
-```
-
----
-
-## 📁 Project structure
+## 📂 Project Structure
 
 ```
-app/
-├── (public pages)         /, /games/[slug], /order, /blog, /faq
-├── admin/                 Admin UI (games, orders, banners, ...)
-└── api/
-    ├── orders/            Public order + invoice endpoints
-    ├── payment/           Tola Saint init, simulate, webhook
-    └── admin/             Protected admin API routes
-components/                Header, Footer, GameCard, TopUpForm, carousel
-lib/
-├── auth.ts                JWT session + bcrypt
-├── payment/                Tola Saint provider adapter + simulator
-├── telegram.ts            notifyTelegram()
-├── audit.ts               writeAudit()
-└── prisma.ts              Shared client
-prisma/
-├── schema.prisma          Data model
-└── seed.ts                First admin + demo games
-middleware.ts              /admin/* + /api/admin/* auth gate
+dytopup/
+├── app/
+│   ├── (storefront)/         # Home, Game details, Order tracker, FAQ, Blog
+│   ├── admin/                # Admin Panel UI pages
+│   └── api/                  # RESTful API handlers (Orders, Payment, Auth, Admin)
+├── components/               # Modular UI Components (Header, Footer, KHQR Sheet)
+├── lib/
+│   ├── payment/              # Tola Saint KHQR provider & sandbox engine
+│   ├── topup/                # Khmer TopUp & Bay2Game fulfillment adapters
+│   ├── auth.ts               # Web & Mobile authentication helpers
+│   ├── lockPolicy.ts         # Progressive lockout security policy
+│   └── telegram.ts           # Unified Telegram bot dispatcher
+├── prisma/
+│   ├── schema.prisma         # Multi-model database schema
+│   └── seed.ts               # Default games & administrator seed script
+├── public/                   # Static assets & brand icons
+└── scripts/                  # Management scripts & favicon generator
 ```
-
----
-
-## 📜 Scripts
-
-| Command | What it does |
-|---|---|
-| `npm run dev` | Start dev server on `:3000` |
-| `npm run build` | `prisma generate && next build` |
-| `npm start` | Run the production build |
-| `npm run lint` | ESLint |
-| `npm run db:push` | Apply Prisma schema to database |
-| `npm run db:seed` | Seed admin user + demo games |
-| `npm run db:studio` | Open Prisma Studio GUI |
-
----
-
-## 🐛 Troubleshooting
-
-<details>
-<summary><b>Admin login returns 401 right after deploy</b></summary>
-
-Did you run the seed on the production database? Connect locally with your prod `DATABASE_URL` and run `npm run db:seed` once.
-</details>
-
-
-<details>
-<summary><b>Tola Saint returns HTTP 403 on Vercel</b></summary>
-
-This usually means the Vercel deployment is calling the real Tola Saint API, but Tola Saint refused the request. Check:
-
-- `TOLA_SAINT_API_KEY` is correct and has no extra spaces or quotes.
-- `TOLA_SAINT_BASE_URL` is `https://api.tolasaint.com`.
-- Your Tola Saint merchant/payment settings are active.
-- `NEXT_PUBLIC_BASE_URL` and `PUBLIC_APP_URL` match your Vercel domain with HTTPS and no trailing slash.
-
-For testing only, set `PAYMENT_SIMULATION_MODE=true` in Vercel, to keep the checkout working while you fix the Tola Saint account/API key. Do not enable simulation fallback for real customer payments.
-</details>
-
-<details>
-<summary><b>Tola Saint QR expired / webhook never fires</b></summary>
-
-- The QR expires quickly (the exact window comes from the provider `expires_at`) — this is a Tola Saint limit, not a bug.
-- Webhook URL in Tola Saint dashboard must be `https://your-domain/api/payment/webhook/tolasaint` (HTTPS, not localhost).
-- For local testing use a tunnel: `cloudflared tunnel --url http://localhost:3000` and set `PUBLIC_APP_URL` to the tunnel URL.
-- If the webhook doesn't reach you, the order-detail page auto-polls Tola Saint every 3 seconds — the order will still flip to PAID.
-</details>
-
-<details>
-<summary><b>Prisma error on Vercel: "Can't reach database"</b></summary>
-
-- You're still on SQLite. Switch `provider` to `postgresql` in `prisma/schema.prisma` and push.
-- Or your `DATABASE_URL` is wrong. For Neon/Supabase, make sure it ends with `?sslmode=require`.
-</details>
-
-<details>
-<summary><b>PDF invoice returns 500 on Vercel</b></summary>
-
-- Already handled: [`next.config.js`](next.config.js) declares `pdfkit` as `serverComponentsExternalPackages` and the route is pinned to `runtime = "nodejs"`. If it still happens, redeploy after clearing Vercel's build cache.
-</details>
-
-<details>
-<summary><b>Uploaded images disappear on Vercel</b></summary>
-
-`public/uploads/` is **read-only** on Vercel. Wire any upload feature to Vercel Blob / Cloudinary / S3 instead of the filesystem.
-</details>
-
----
-
-## 🔒 Security checklist before going live
-
-- [ ] Change `ADMIN_PASSWORD` from the default
-- [ ] `ADMIN_JWT_SECRET` is 32+ random chars, different from any other project
-- [ ] `PAYMENT_SIMULATION_MODE=false` in production
-- [ ] `TOLA_SAINT_WEBHOOK_SECRET` matches the one configured in Tola Saint dashboard
-- [ ] Custom domain set in Vercel with HTTPS enforced
-- [ ] `.env` is **not** committed (verify with `git ls-files | grep .env`)
-- [ ] Admin users are created via the seed script, not hardcoded
 
 ---
 
@@ -363,15 +258,16 @@ For testing only, set `PAYMENT_SIMULATION_MODE=true` in Vercel, to keep the chec
 
 **Copyright © 2026 DyTopup (SokPhal). All Rights Reserved.**
 
-Developed & Maintained by **[SokPhal](https://sophal.vercel.app/)** for **DyTopup**.
+Developed & Maintained with ❤️ by **[SokPhal](https://sophal.vercel.app/)** for **DyTopup**.
 
-This project and its source code are proprietary and confidential. Unauthorized copying, distribution, reproduction, or modification of this project, in whole or in part, via any medium is strictly prohibited without explicit written permission from the owner.
+This project and its source code are proprietary and confidential. Unauthorized copying, distribution, reproduction, or modification of this project, in whole or in part, via any medium is strictly prohibited without explicit written permission from the author.
 
 ---
 
 <div align="center">
 
 Built with ⚡ for the Cambodian gaming community by **[SokPhal](https://sophal.vercel.app/)**.  
-Support: **[@dytopup](https://t.me/dytopup)** on Telegram · Portfolio: **[sophal.vercel.app](https://sophal.vercel.app/)**
+Support: **[@dytopup](https://t.me/dytopup)** on Telegram • Portfolio: **[sophal.vercel.app](https://sophal.vercel.app/)**
 
 </div>
+
