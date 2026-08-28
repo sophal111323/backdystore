@@ -62,23 +62,23 @@ export default async function HomePage() {
       {/* Section title + games grid */}
       <section
         id="games"
-        className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8"
+        className="relative mx-auto max-w-7xl px-2.5 py-10 sm:px-6 sm:py-12 lg:px-8"
       >
-        <div className="text-center mb-10">
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold mb-2 text-pink-800 flex items-center justify-center gap-2">
+        <div className="text-center mb-6 sm:mb-10">
+          <h2 className="font-display text-2xl sm:text-4xl font-extrabold mb-2 text-pink-800 flex items-center justify-center gap-2">
             <Image
               src="https://i.ibb.co/Q3MfYWGH/1000073292-removebg-preview.png"
               alt="icon"
               width={48}
               height={48}
-              className="h-12 w-12"
+              className="h-10 w-10 sm:h-12 sm:w-12"
             />
             ហ្គេមទាំងអស់
           </h2>
           <p className="text-pink-500 text-sm font-bold"></p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 md:gap-5">
           {games.map((game, i) => (
             <div
               key={game.id}
