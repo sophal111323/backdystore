@@ -1,8 +1,8 @@
-# Requirements — API Security Hardening (JASMINTOPUP)
+# Requirements — API Security Hardening (DYTOPUP)
 
 ## Introduction
 
-JASMINTOPUP is a Next.js (App Router) + TypeScript + Prisma/PostgreSQL application on Vercel, with a public customer website and an admin panel, plus a Flutter admin app that consumes the same backend APIs. A prior audit established that the codebase is already strongly secured in many areas (Prisma `select` allowlists on public game/product routes, DB-backed rate limiting on sensitive endpoints, JWT HttpOnly/SameSite cookies, TOTP 2FA with lockout, webhook HMAC verification, server-side payment validation, middleware CSP and security headers, secure logging, and image-upload validation).
+DYTOPUP is a Next.js (App Router) + TypeScript + Prisma/PostgreSQL application on Vercel, with a public customer website and an admin panel, plus a Flutter admin app that consumes the same backend APIs. A prior audit established that the codebase is already strongly secured in many areas (Prisma `select` allowlists on public game/product routes, DB-backed rate limiting on sensitive endpoints, JWT HttpOnly/SameSite cookies, TOTP 2FA with lockout, webhook HMAC verification, server-side payment validation, middleware CSP and security headers, secure logging, and image-upload validation).
 
 This spec defines the remaining, deliberately-scoped hardening work: completing a full route security map, introducing reusable response/mapper/validation helpers where they reduce risk, ensuring consistent safe error handling, confirming rate-limit and header coverage, and standardizing response handling — all WITHOUT breaking the live website or the Flutter app.
 

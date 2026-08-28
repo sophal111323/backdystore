@@ -123,7 +123,7 @@ export default function AdminSettingsPage() {
             </div>
             <div>
               <label className="label">Support Telegram</label>
-              <input className="input" value={form.supportTelegram || ""} onChange={(e) => update("supportTelegram", e.target.value)} placeholder="@jasmintopup" />
+              <input className="input" value={form.supportTelegram || ""} onChange={(e) => update("supportTelegram", e.target.value)} placeholder="@dytopup" />
             </div>
             <div>
               <label className="label">Support TikTok</label>

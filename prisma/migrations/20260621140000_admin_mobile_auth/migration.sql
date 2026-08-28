@@ -1,4 +1,4 @@
--- Admin mobile auth support for JASMIN_DASHBOARD
+-- Admin mobile auth support for DY_DASHBOARD
 -- Adds challenge/session tables for Flutter Bearer-token login while keeping the existing web cookie auth.
 
 -- Audit logs get optional mobile-auth context fields.

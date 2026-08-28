@@ -34,10 +34,10 @@ export const PATCH = withAdminAuth(
       },
       create: {
         id: 1,
-        siteName: "JASMINTOPUP",
+        siteName: "DYTOPUP",
         exchangeRate: 4100,
-        supportTelegram: "@jasmintopup",
-        supportEmail: "support@jasmintopup.com",
+        supportTelegram: "@dytopup",
+        supportEmail: "support@dytopup.com",
         maintenanceMode: data.maintenanceMode,
         maintenanceMessage:
           data.maintenanceMessage ??

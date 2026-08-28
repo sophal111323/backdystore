@@ -16,7 +16,7 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("⚡ Seeding JASMINTOPUP database...");
+  console.log("⚡ Seeding DYTOPUP database...");
 
   // --- Settings singleton ---
   await prisma.settings.upsert({
@@ -24,10 +24,10 @@ async function main() {
     update: {},
     create: {
       id: 1,
-      siteName: "JASMINTOPUP",
+      siteName: "DYTOPUP",
       exchangeRate: 4100,
-      supportTelegram: "@jasmintopup",
-      supportEmail: "support@jasmintopup.com",
+      supportTelegram: "@dytopup",
+      supportEmail: "support@dytopup.com",
     },
   });
 

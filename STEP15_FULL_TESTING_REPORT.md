@@ -2,7 +2,7 @@
 
 ## Scope
 
-This step verifies the JASMINTOPUP backend + the JASMIN_DASHBOARD Flutter admin app after Step 14. It does not add Step 16 deployment work.
+This step verifies the DYTOPUP backend + the DY_DASHBOARD Flutter admin app after Step 14. It does not add Step 16 deployment work.
 
 ## Automated checks run in this environment
 
@@ -62,11 +62,11 @@ npm run dev
 ### Flutter setup
 
 ```bash
-cd jasmin_dashboard
-flutter create --platforms=android,ios --project-name jasmin_dashboard .
+cd dytopup_dashboard
+flutter create --platforms=android,ios --project-name dytopup_dashboard .
 flutter pub get
 flutter analyze
-flutter run --dart-define=JASMIN_API_BASE_URL=http://10.0.2.2:3000
+flutter run --dart-define=DY_API_BASE_URL=http://10.0.2.2:3000
 ```
 
 ### Auth tests

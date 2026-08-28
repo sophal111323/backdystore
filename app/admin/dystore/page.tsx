@@ -288,7 +288,7 @@ export default function AdminLoginPage() {
         >
           <span className="absolute inset-x-8 bottom-1 h-8 rounded-full bg-[#e91e63]/25 blur-2xl transition-transform duration-500 group-hover:scale-125" />
           <Image
-            src="/jasmintopup-admin-logo.png"
+            src="/logo.png"
             alt="DyTopup Logo"
             width={260}
             height={260}

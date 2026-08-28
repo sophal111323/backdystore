@@ -524,7 +524,7 @@ export default function OrderTracker() {
                   href={`https://t.me/share/url?url=${encodeURIComponent(
                     typeof window !== "undefined" ? window.location.href : ""
                   )}&text=${encodeURIComponent(
-                    `⚡ Just topped up ${order.productName} for ${order.gameName} on JASMINTOPUP! Fast & easy 🔥`
+                    `⚡ Just topped up ${order.productName} for ${order.gameName} on DYTOPUP! Fast & easy 🔥`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"

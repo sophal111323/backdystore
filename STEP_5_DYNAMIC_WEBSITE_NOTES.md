@@ -1,6 +1,6 @@
 # Step 5 — Dynamic Website Data + Auto Refresh
 
-This step keeps JASMINTOPUP connected to the same backend/database used by the future Flutter admin app.
+This step keeps DYTOPUP connected to the same backend/database used by the future Flutter admin app.
 
 ## What changed
 

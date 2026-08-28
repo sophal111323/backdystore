@@ -228,7 +228,7 @@ export async function GET(req: NextRequest) {
   const html = `<!doctype html>
 <html>
 <head>
-<title>Payment Simulated — JASMINTOPUP</title>
+<title>Payment Simulated — DYTOPUP</title>
 <meta http-equiv="refresh" content="3;url=${baseUrl}/order?number=${safeOrderNumberForUrl}">
 <style>
   body {

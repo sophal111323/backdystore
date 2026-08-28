@@ -42,7 +42,7 @@ const EN = {
   totalUsd:    "Total Amount (USD)",
   deliveredTo: "Delivered to UID",
   tagline:     "Game Top-Up · Cambodia",
-  support:     "Support: @jasmintopup on Telegram",
+  support:     "Support: @dytopup on Telegram",
   thankyou:    "Thank you for your purchase!",
   footerBody:  "Credits are delivered directly to your game account. If you do not receive them within 10 minutes, please contact us.",
   generated:   "This invoice was system-generated for order",
@@ -130,8 +130,8 @@ function renderPdf(
     }
 
     // Brand name
-    doc.fillColor(BRAND.white).font(KB).fontSize(26).text("JASMIN", brandX, 48);
-    const jW = doc.widthOfString("JASMIN");
+    doc.fillColor(BRAND.white).font(KB).fontSize(26).text("DY", brandX, 48);
+    const jW = doc.widthOfString("DY");
     doc.fillColor("rgba(255,255,255,0.70)").fontSize(26).text("TOPUP", brandX + jW + 2, 48);
     doc.fillColor("rgba(255,255,255,0.70)").font(KR).fontSize(9).text(EN.tagline, brandX, 82);
     doc.fillColor("rgba(255,255,255,0.50)").fontSize(8).text(EN.support, brandX, 96);
@@ -303,7 +303,7 @@ function renderPdf(
     doc.fillColor("rgba(255,255,255,0.75)").font(KR).fontSize(9)
       .text(EN.footerBody, marginX, footerY + 40, { width: contentW, align: "center" });
     doc.fillColor(BRAND.white).font(KB).fontSize(9)
-      .text("Telegram: @jasmintopup", marginX, footerY + 80);
+      .text("Telegram: @dytopup", marginX, footerY + 80);
     doc.fillColor("rgba(255,255,255,0.50)").font(KR).fontSize(8)
       .text(
         `${EN.generated} ${order.orderNumber}. ${EN.noSig}.`,

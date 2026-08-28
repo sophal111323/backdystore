@@ -75,7 +75,8 @@ export const OrderLookupSchema = z.object({
 export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
   const result = schema.safeParse(data);
   if (!result.success) {
-    const messages = result.error.errors.map((e) => `${e.path.join(".")}: ${e.message}`);
+    const issues = result.error.issues || (result.error as any).errors || [];
+    const messages = issues.map((e: any) => `${e.path.join(".")}: ${e.message}`);
     throw new ValidationError(messages.join(", "));
   }
   return result.data;

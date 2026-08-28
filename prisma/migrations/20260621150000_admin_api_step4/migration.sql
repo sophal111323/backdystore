@@ -1,4 +1,4 @@
--- Step 4: Admin API support for JASMIN_DASHBOARD
+-- Step 4: Admin API support for DY_DASHBOARD
 -- Adds notifications used by the Flutter admin app for badges and new-order/update alerts.
 
 CREATE TABLE IF NOT EXISTS "Notification" (

@@ -11,7 +11,7 @@ export const GET = withAdminAuth(
       update: {},
       create: {
         id: 1,
-        siteName: "JASMIN TOPUP",
+        siteName: "DY TOPUP",
         exchangeRate: 4100,
         maintenanceMode: false,
       },

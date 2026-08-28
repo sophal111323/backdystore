@@ -102,7 +102,7 @@ export default function MaintenanceGate() {
             <div className="relative flex h-[118px] w-[220px] items-center justify-center rounded-[30px] border border-pink-100/90 bg-gradient-to-br from-white via-pink-50 to-white px-4 py-3 shadow-xl shadow-pink-200/55 ring-1 ring-white/80">
               <div className="absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.22),transparent_58%)]" />
               <img
-                src="/jasmintopup-logo.png"
+                src="/logo.png"
                 alt="DyTopup logo"
                 className="relative h-full w-full object-contain drop-shadow-[0_14px_22px_rgba(219,39,119,0.28)]"
               />

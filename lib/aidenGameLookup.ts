@@ -146,7 +146,7 @@ export async function lookupAidenGameNickname(
       method: "GET",
       headers: {
         Accept: "application/json",
-        "User-Agent": "JASMINTOPUP/1.0",
+        "User-Agent": "DYTOPUP/1.0",
       },
       cache: "no-store",
       signal: controller.signal,

@@ -1,4 +1,4 @@
-﻿# JASMINTOPUP â€” Security Checklist (Issue #12)
+﻿# DYTOPUP â€” Security Checklist (Issue #12)
 
 This checklist covers all major security controls. Run through it before every
 production deployment and after any significant code change.

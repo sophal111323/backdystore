@@ -1,4 +1,4 @@
-// Prisma schema for  JASMINTOPUP
+// Prisma schema for  DYTOPUP
 // Database: PostgreSQL / Neon / Vercel
 // After edit run:
 // npx prisma format
@@ -146,7 +146,7 @@ model Settings {
   telegramChatId   String?
   updatedAt        DateTime @updatedAt
 
-  siteName     String @default("JASMIN TOPUP")
+  siteName     String @default("DY TOPUP")
   exchangeRate Float  @default(4100)
 
   supportTelegram String?

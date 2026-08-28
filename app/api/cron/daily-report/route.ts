@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
   const cf = stats.cloudflareSecurity;
   const messages: string[] = [
     [
-      `📊 <b>JASMINTOPUP Daily Report</b>`,
+      `📊 <b>DYTOPUP Daily Report</b>`,
       `Date: <b>${line(stats.range.label)}</b> (Cambodia)`,
       "",
       `Origin requests: <b>${stats.totalRequests}</b>`,

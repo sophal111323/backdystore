@@ -1,9 +1,9 @@
-# JASMINTOPUP — Deploy to Render + Neon (Free, ~10 min)
+# DYTOPUP — Deploy to Render + Neon (Free, ~10 min)
 
 ## Step 1 — Create Neon database (2 min)
 
 1. Go to https://neon.tech → **Sign up** (GitHub login fastest)
-2. Create Project → name it `jasmintopup` → pick region **Singapore** (closest to KH)
+2. Create Project → name it `dytopup` → pick region **Singapore** (closest to KH)
 3. Copy the **connection string**:
    ```
    postgresql://neondb_owner:xxxxx@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
@@ -36,7 +36,7 @@ git commit -m "Initial commit"
 
 Create a new private repo on https://github.com/new, then:
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/jasmintopup.git
+git remote add origin https://github.com/YOUR_USERNAME/dytopup.git
 git branch -M main
 git push -u origin main
 ```
@@ -44,14 +44,14 @@ git push -u origin main
 ## Step 4 — Deploy on Render (3 min)
 
 1. Go to https://render.com → Sign up with GitHub
-2. Click **New → Web Service** → connect your `jasmintopup` repo
+2. Click **New → Web Service** → connect your `dytopup` repo
 3. Set these in Render dashboard under **Environment**:
 
    | Name | Value |
    |---|---|
    | `DATABASE_URL` | your Neon connection string |
    | `ADMIN_JWT_SECRET` | your 32+ char random string |
-   | `ADMIN_EMAIL` | `admin@jasmintopup.com` |
+   | `ADMIN_EMAIL` | `admin@dytopup.com` |
    | `ADMIN_PASSWORD` | your admin password |
    | `NEXT_PUBLIC_BASE_URL` | leave blank for now |
    | `PAYMENT_SIMULATION_MODE` | `true` for testing; `false` for real payments |
@@ -67,14 +67,14 @@ git push -u origin main
 
 ## Step 5 — Post-deploy
 
-1. Copy your live URL (e.g. `https://jasmintopup.onrender.com`)
+1. Copy your live URL (e.g. `https://dytopup.onrender.com`)
 2. Render dashboard → **Environment** → set `NEXT_PUBLIC_BASE_URL` to that URL
 3. Click **Manual Deploy** → done
 
 ## ✅ You're live
 
-- Public site: `https://jasmintopup.onrender.com`
-- Admin panel: `https://jasmintopup.onrender.com/admin/login`
+- Public site: `https://dytopup.onrender.com`
+- Admin panel: `https://dytopup.onrender.com/admin/login`
 
 ## ⚠️ Render Free Tier Note
 

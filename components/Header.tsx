@@ -117,7 +117,7 @@ export default function Header() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="group flex items-center gap-2.5">
             <Image
-              src="/jasmintopup-logo.png"
+              src="/logo.png"
               alt="DyTopup Logo"
               width={64}
               height={44}
@@ -232,7 +232,7 @@ export default function Header() {
             <div className="flex items-center justify-between gap-2.5">
               <Link href="/" onClick={() => setMobileOpen(false)} className="flex min-w-0 items-center gap-2.5">
                 <Image
-                  src="/jasmintopup-logo.png"
+                  src="/logo.png"
                   alt="DyTopup Logo"
                   width={60}
                   height={44}

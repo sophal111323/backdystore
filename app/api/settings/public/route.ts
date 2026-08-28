@@ -55,7 +55,7 @@ function buildPublicSettings(settings: PublicSettingsRecord) {
     supportTelegram: settings?.supportTelegram ?? "@dytopup",
     supportTikTok: settings?.supportTikTok ?? "",
     supportEmail: settings?.supportEmail ?? null,
-    logoUrl: settings?.logoUrl ?? "/jasmintopup-logo.png",
+    logoUrl: settings?.logoUrl ?? "/logo.png",
     logoText: settings?.logoText ?? "DyTopup",
     logoTagline: settings?.logoTagline ?? "Instant · Secure · 24/7",
     appConfig: {

@@ -68,8 +68,8 @@ export const getPublicSettings = unstable_cache(
         paymentsEnabled: settings?.paymentsEnabled ?? true,
         promosEnabled: settings?.promosEnabled ?? true,
       },
-      logoUrl: settings?.logoUrl || "/jasmintopup-logo.png",
-      logoText: settings?.logoText || "JASMINTOPUP",
+      logoUrl: settings?.logoUrl || "/logo.png",
+      logoText: settings?.logoText || "DYTOPUP",
       logoTagline: settings?.logoTagline || "Instant · Secure · 24/7",
       updatedAt: settings?.updatedAt ?? null,
     };

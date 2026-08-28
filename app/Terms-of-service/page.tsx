@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "គោលការណ៍សេវាកម្ម ការសងប្រាក់ ការកែប្រែបញ្ជាទិញ និងការមិនទទួលខុសត្រូវក្រោយពេលទិញនៅ DyTopup។",
   keywords: [
-    "jasmin topup",
+    "dytopup",
     "terms of service",
     "privacy policy",
     "refund policy",

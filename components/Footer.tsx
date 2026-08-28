@@ -20,12 +20,12 @@ function socialInfo(value: string | null | undefined, fallbackUsername: string, 
 }
 
 function telegramInfo(value: string | null | undefined) {
-  const safeVal = value && !value.toLowerCase().includes("jasmintopup") ? value : "@dytopup";
+  const safeVal = value && !value.toLowerCase().includes("dytopup") ? value : "@dytopup";
   return socialInfo(safeVal, "dytopup", "https://t.me");
 }
 
 function tiktokInfo(value: string | null | undefined) {
-  const safeVal = value && !value.toLowerCase().includes("jasmintopup") ? value : "@dytopup";
+  const safeVal = value && !value.toLowerCase().includes("dytopup") ? value : "@dytopup";
   return socialInfo(safeVal, "dytopup", "https://www.tiktok.com/@");
 }
 
@@ -33,7 +33,7 @@ export default async function Footer() {
   const settings = await getPublicSettings();
   const telegram = telegramInfo(settings.supportTelegram);
   const tiktok = tiktokInfo(settings.supportTikTok);
-  const supportEmail = settings.supportEmail && !settings.supportEmail.toLowerCase().includes("jasmintopup")
+  const supportEmail = settings.supportEmail && !settings.supportEmail.toLowerCase().includes("dytopup")
     ? settings.supportEmail
     : "support@dytopup.com";
 
@@ -46,7 +46,7 @@ export default async function Footer() {
             <div className="flex items-center gap-2.5 mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={settings.logoUrl || "/jasmintopup-logo.png"}
+                src={settings.logoUrl || "/logo.png"}
                 alt="DyTopup Logo"
                 width={56}
                 height={40}

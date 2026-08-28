@@ -1,6 +1,6 @@
 # Step 16 — Final Summary
 
-Step 16 added final deployment and release documentation for the completed JASMINTOPUP + JASMIN_DASHBOARD system.
+Step 16 added final deployment and release documentation for the completed DYTOPUP + DY_DASHBOARD system.
 
 ## Added
 

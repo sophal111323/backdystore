@@ -24,7 +24,7 @@ function tryRevalidatePath(path: string, type?: "page" | "layout") {
 
 function tryRevalidateTag(tag: string) {
   try {
-    revalidateTag(tag);
+    (revalidateTag as any)(tag);
   } catch (error) {
     console.warn(`[revalidate] tag failed: ${tag}`, error);
   }

@@ -141,7 +141,7 @@ function buildAlertMessage(
 
   return [
     test ? "🧪 <b>Cloudflare Protection Alert Test</b>" : "🚨 <b>Cloudflare Protection Alert</b>",
-    `Site: <b>JASMINTOPUP</b>`,
+    `Site: <b>DYTOPUP</b>`,
     `Date: <b>${line(range.label)}</b> (Cambodia)`,
     `Metric: <b>${line(metricLabel(metric))}</b>`,
     test ? `Current count: <b>${formatNumber(currentCount)}</b>` : `Reached: <b>${formatNumber(highestThreshold)}</b>+`,

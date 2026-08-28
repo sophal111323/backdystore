@@ -1,12 +1,12 @@
 # Step 6 — Flutter Project Scaffold
 
-Created `jasmin_dashboard/` as the Flutter admin app source scaffold.
+Created `dytopup_dashboard/` as the Flutter admin app source scaffold.
 
 ## Included
 
 - `pubspec.yaml` dependencies: Dio, Riverpod, Secure Storage, GoRouter, Google Fonts, intl.
 - `lib/main.dart` and `lib/app.dart`.
-- Central API config via `--dart-define=JASMIN_API_BASE_URL=...`.
+- Central API config via `--dart-define=DY_API_BASE_URL=...`.
 - Dio API client with Bearer token injection.
 - Secure token storage.
 - Pink/purple app theme.

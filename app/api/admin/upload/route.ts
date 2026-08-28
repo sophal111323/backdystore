@@ -54,7 +54,7 @@ const MAGIC: Record<string, (buf: Uint8Array) => boolean> = {
 function generateSafePublicId(): string {
   const ts = Date.now();
   const rand = Math.random().toString(36).slice(2, 10);
-  return `jasmintopup/img_${ts}_${rand}`;
+  return `dytopup/img_${ts}_${rand}`;
 }
 
 export const POST = withAdminAuth(

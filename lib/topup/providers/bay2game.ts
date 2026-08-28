@@ -85,7 +85,7 @@ async function callBay2Game(
       headers: {
         Accept: "application/json",
         // api_key is sent as a query/body parameter per official docs.
-        "User-Agent": "JASMINTOPUP/1.0",
+        "User-Agent": "DYTOPUP/1.0",
       },
       cache: "no-store",
       signal: controller.signal,

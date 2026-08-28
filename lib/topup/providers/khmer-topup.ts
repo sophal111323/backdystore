@@ -87,7 +87,7 @@ async function callKhmerTopup(
     Authorization: `Bearer ${apiKey}`,
     "X-API-Key": apiKey,
     Accept: "application/json",
-    "User-Agent": "JASMINTOPUP/1.0",
+    "User-Agent": "DYTOPUP/1.0",
   };
 
   if (options.body && options.method === "POST") {

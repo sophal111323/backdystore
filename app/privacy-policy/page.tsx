@@ -19,7 +19,7 @@ const sections = [
     title: "សេចក្តីផ្តើម",
     content: (
       <p>
-        DyTopup (<a href="https://www.jasmintopup.site" className="text-pink-600 hover:underline font-semibold">www.jasmintopup.site</a>)
+        DyTopup (<a href="https://www.dytopup.site" className="text-pink-600 hover:underline font-semibold">www.dytopup.site</a>)
         គឺជា platform សម្រាប់បញ្ចូល diamonds, coins, Robux និង game credits ផ្សេងៗ
         ស្ថិតនៅក្នុងប្រទេសកម្ពុជា។ គោលការណ៍ឯកជនភាពនេះ ពន្យល់ពីរបៀបដែលយើង
         ប្រមូល រក្សា ប្រើប្រាស់ និងការពារព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក នៅពេល
@@ -271,8 +271,8 @@ const sections = [
         </ul>
         <p className="text-sm text-pink-600">
           ដើម្បីប្រើប្រាស់សិទ្ធិទាំងនេះ សូមទំនាក់ទំនងយើងតាម{" "}
-          <a href="mailto:jasmintopup@gmail.com" className="text-pink-700 font-semibold hover:underline">
-            jasmintopup@gmail.com
+          <a href="mailto:dytopup@gmail.com" className="text-pink-700 font-semibold hover:underline">
+            dytopup@gmail.com
           </a>{" "}
           ហើយយើងនឹងឆ្លើយតបក្នុងរយៈ <strong>៧ ថ្ងៃ</strong>។
         </p>
@@ -331,9 +331,9 @@ const sections = [
         </p>
         <div className="rounded-2xl border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-white p-5 space-y-3">
           {[
-            { icon: <Image src="/jasmintopup-logo.png" alt="" width={20} height={20} className="h-5 w-5 object-contain" />, label: "DyTopup" },
-            { icon: <span aria-hidden="true">🌐</span>, label: <a href="https://www.jasmintopup.site" className="text-pink-700 hover:underline font-medium">www.jasmintopup.site</a> },
-            { icon: <span aria-hidden="true">✉️</span>, label: <a href="mailto:jasmintopup@gmail.com" className="text-pink-700 hover:underline font-medium">jasmintopup@gmail.com</a> },
+            { icon: <Image src="/logo.png" alt="" width={20} height={20} className="h-5 w-5 object-contain" />, label: "DyTopup" },
+            { icon: <span aria-hidden="true">🌐</span>, label: <a href="https://www.dytopup.site" className="text-pink-700 hover:underline font-medium">www.dytopup.site</a> },
+            { icon: <span aria-hidden="true">✉️</span>, label: <a href="mailto:dytopup@gmail.com" className="text-pink-700 hover:underline font-medium">dytopup@gmail.com</a> },
             { icon: <span aria-hidden="true">🇰🇭</span>, label: "ប្រទេសកម្ពុជា" },
           ].map(({ icon, label }, i) => (
             <div key={i} className="flex items-center gap-3 text-sm">
@@ -407,7 +407,7 @@ export default function PrivacyPolicyPage() {
                 <div className="flex items-center gap-4">
                   <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.5rem] border border-pink-100 bg-white p-2 shadow-lg shadow-pink-200/50">
                     <Image
-                      src="/jasmintopup-logo.png"
+                      src="/logo.png"
                       alt="DyTopup"
                       width={80}
                       height={80}

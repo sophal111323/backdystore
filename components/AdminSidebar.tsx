@@ -67,7 +67,7 @@ export default function AdminSidebar({
       >
         <div className="flex items-center gap-3 rounded-2xl bg-white/55 p-3 shadow-sm shadow-pink-200/60 ring-1 ring-pink-200/80 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-pink-200/70">
           <Image
-            src="/jasmintopup-logo.png"
+            src="/logo.png"
             alt="DyTopup Logo"
             width={64}
             height={48}

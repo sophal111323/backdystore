@@ -4,7 +4,7 @@
 
 # Step 16 â€” Final Deployment Instructions
 
-This step explains how to run, build, and deploy the full JASMINTOPUP system with the connected Flutter admin app `JASMIN_DASHBOARD`.
+This step explains how to run, build, and deploy the full DYTOPUP system with the connected Flutter admin app `DY_DASHBOARD`.
 
 ## 1. What you are deploying
 
@@ -12,8 +12,8 @@ The final project has two connected parts:
 
 | Part | Folder | Purpose |
 |---|---|---|
-| JASMINTOPUP website/backend | project root | Next.js storefront, admin APIs, Prisma, PostgreSQL |
-| JASMIN_DASHBOARD Flutter app | `jasmin_dashboard/` | Admin-only mobile app using secure Bearer token auth |
+| DYTOPUP website/backend | project root | Next.js storefront, admin APIs, Prisma, PostgreSQL |
+| DY_DASHBOARD Flutter app | `dytopup_dashboard/` | Admin-only mobile app using secure Bearer token auth |
 
 Data flow:
 
@@ -36,7 +36,7 @@ Important rule: the Flutter app never edits website files directly. It only talk
 - Node.js 22.x recommended because `package.json` sets `engines.node` to `22.x`.
 - npm
 - PostgreSQL database, recommended: Neon PostgreSQL.
-- Production HTTPS domain, for example `https://www.jasmintopup.site`.
+- Production HTTPS domain, for example `https://www.dytopup.site`.
 
 ### Flutter app
 
@@ -75,8 +75,8 @@ Production minimum:
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"
 ADMIN_JWT_SECRET="long-random-production-secret"
-NEXT_PUBLIC_BASE_URL="https://www.jasmintopup.site"
-PUBLIC_APP_URL="https://www.jasmintopup.site"
+NEXT_PUBLIC_BASE_URL="https://www.dytopup.site"
+PUBLIC_APP_URL="https://www.dytopup.site"
 PUBLIC_DATA_REVALIDATE_SECONDS="10"
 ADMIN_LOGIN_CHALLENGE_TTL_SECONDS="300"
 ADMIN_MOBILE_SESSION_TTL_SECONDS="28800"
@@ -146,13 +146,13 @@ After first login, set up Google Authenticator 2FA from the admin flow. The Flut
 Go to the Flutter folder:
 
 ```bash
-cd jasmin_dashboard
+cd dytopup_dashboard
 ```
 
 If `android/` and `ios/` folders are missing, generate them:
 
 ```bash
-flutter create --platforms=android,ios --project-name jasmin_dashboard .
+flutter create --platforms=android,ios --project-name dytopup_dashboard .
 ```
 
 Then install packages:
@@ -165,22 +165,22 @@ flutter analyze
 Run on Android emulator:
 
 ```bash
-flutter run --dart-define=JASMIN_API_BASE_URL=http://10.0.2.2:3000
+flutter run --dart-define=DY_API_BASE_URL=http://10.0.2.2:3000
 ```
 
 Run on physical Android phone on same Wi-Fi:
 
 ```bash
-flutter run --dart-define=JASMIN_API_BASE_URL=http://YOUR_PC_LAN_IP:3000
+flutter run --dart-define=DY_API_BASE_URL=http://YOUR_PC_LAN_IP:3000
 ```
 
 Run against production:
 
 ```bash
-flutter run --dart-define=JASMIN_API_BASE_URL=https://www.jasmintopup.site
+flutter run --dart-define=DY_API_BASE_URL=https://www.dytopup.site
 ```
 
-Do not include a trailing slash in `JASMIN_API_BASE_URL`.
+Do not include a trailing slash in `DY_API_BASE_URL`.
 
 ---
 
@@ -191,7 +191,7 @@ Do not include a trailing slash in `JASMIN_API_BASE_URL`.
 ```bash
 git init
 git add .
-git commit -m "JASMINTOPUP with Flutter admin dashboard"
+git commit -m "DYTOPUP with Flutter admin dashboard"
 git branch -M main
 git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
 git push -u origin main
@@ -219,8 +219,8 @@ Add at least:
 ```env
 DATABASE_URL=
 ADMIN_JWT_SECRET=
-NEXT_PUBLIC_BASE_URL=https://www.jasmintopup.site
-PUBLIC_APP_URL=https://www.jasmintopup.site
+NEXT_PUBLIC_BASE_URL=https://www.dytopup.site
+PUBLIC_APP_URL=https://www.dytopup.site
 PUBLIC_DATA_REVALIDATE_SECONDS=10
 ADMIN_LOGIN_CHALLENGE_TTL_SECONDS=300
 ADMIN_MOBILE_SESSION_TTL_SECONDS=28800
@@ -265,10 +265,10 @@ Click Deploy in Vercel, or push to GitHub after env variables are set.
 After deployment, test:
 
 ```txt
-https://www.jasmintopup.site
-https://www.jasmintopup.site/admin/dystore
-https://www.jasmintopup.site/api/settings/public
-https://www.jasmintopup.site/api/public/version?scope=home
+https://www.dytopup.site
+https://www.dytopup.site/admin/dystore
+https://www.dytopup.site/api/settings/public
+https://www.dytopup.site/api/public/version?scope=home
 ```
 
 ---
@@ -296,8 +296,8 @@ If Vercel says the domain is linked to another account, add the TXT verification
 After verification, set these env values to the final domain:
 
 ```env
-NEXT_PUBLIC_BASE_URL=https://www.jasmintopup.site
-PUBLIC_APP_URL=https://www.jasmintopup.site
+NEXT_PUBLIC_BASE_URL=https://www.dytopup.site
+PUBLIC_APP_URL=https://www.dytopup.site
 ```
 
 Redeploy after changing env variables.
@@ -330,13 +330,13 @@ Important checks:
 
 ## 9. Build Android APK
 
-From `jasmin_dashboard/`:
+From `dytopup_dashboard/`:
 
 ```bash
 flutter clean
 flutter pub get
 flutter analyze
-flutter build apk --release --dart-define=JASMIN_API_BASE_URL=https://www.jasmintopup.site
+flutter build apk --release --dart-define=DY_API_BASE_URL=https://www.dytopup.site
 ```
 
 APK output:
@@ -354,7 +354,7 @@ adb install build/app/outputs/flutter-apk/app-release.apk
 For Google Play style bundle:
 
 ```bash
-flutter build appbundle --release --dart-define=JASMIN_API_BASE_URL=https://www.jasmintopup.site
+flutter build appbundle --release --dart-define=DY_API_BASE_URL=https://www.dytopup.site
 ```
 
 AAB output:
@@ -367,13 +367,13 @@ build/app/outputs/bundle/release/app-release.aab
 
 ## 10. Prepare iOS build
 
-From `jasmin_dashboard/`:
+From `dytopup_dashboard/`:
 
 ```bash
 flutter clean
 flutter pub get
 flutter analyze
-flutter build ios --release --dart-define=JASMIN_API_BASE_URL=https://www.jasmintopup.site
+flutter build ios --release --dart-define=DY_API_BASE_URL=https://www.dytopup.site
 ```
 
 Then open iOS project:
@@ -399,19 +399,19 @@ You need an Apple Developer account for real App Store/TestFlight distribution.
 Use production domain:
 
 ```bash
---dart-define=JASMIN_API_BASE_URL=https://www.jasmintopup.site
+--dart-define=DY_API_BASE_URL=https://www.dytopup.site
 ```
 
 For emulator local backend:
 
 ```bash
---dart-define=JASMIN_API_BASE_URL=http://10.0.2.2:3000
+--dart-define=DY_API_BASE_URL=http://10.0.2.2:3000
 ```
 
 For physical phone local backend:
 
 ```bash
---dart-define=JASMIN_API_BASE_URL=http://YOUR_PC_LAN_IP:3000
+--dart-define=DY_API_BASE_URL=http://YOUR_PC_LAN_IP:3000
 ```
 
 If the phone cannot connect locally:
@@ -541,18 +541,18 @@ npm run start
 Flutter local Android emulator:
 
 ```bash
-cd jasmin_dashboard
-flutter create --platforms=android,ios --project-name jasmin_dashboard .
+cd dytopup_dashboard
+flutter create --platforms=android,ios --project-name dytopup_dashboard .
 flutter pub get
-flutter run --dart-define=JASMIN_API_BASE_URL=http://10.0.2.2:3000
+flutter run --dart-define=DY_API_BASE_URL=http://10.0.2.2:3000
 ```
 
 Flutter production APK:
 
 ```bash
-cd jasmin_dashboard
+cd dytopup_dashboard
 flutter clean
 flutter pub get
 flutter analyze
-flutter build apk --release --dart-define=JASMIN_API_BASE_URL=https://www.jasmintopup.site
+flutter build apk --release --dart-define=DY_API_BASE_URL=https://www.dytopup.site
 ```

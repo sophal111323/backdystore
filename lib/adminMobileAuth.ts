@@ -63,7 +63,7 @@ export function hashAdminSessionToken(token: string) {
 }
 
 function createRawAdminSessionToken() {
-  return `jasmin_admin_${crypto.randomBytes(32).toString("hex")}`;
+  return `dytopup_admin_${crypto.randomBytes(32).toString("hex")}`;
 }
 
 export async function createAdminLoginChallenge(adminId: string, req: NextRequest) {

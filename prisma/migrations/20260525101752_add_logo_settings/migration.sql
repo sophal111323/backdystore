@@ -8,7 +8,7 @@
 ALTER TABLE "Settings" ADD COLUMN     "logoTagline" TEXT,
 ADD COLUMN     "logoText" TEXT,
 ADD COLUMN     "logoUrl" TEXT,
-ALTER COLUMN "siteName" SET DEFAULT 'JASMIN TOPUP',
+ALTER COLUMN "siteName" SET DEFAULT 'DY TOPUP',
 ALTER COLUMN "supportTelegram" DROP DEFAULT,
 ALTER COLUMN "supportEmail" DROP DEFAULT,
 ALTER COLUMN "announcementTone" DROP DEFAULT;

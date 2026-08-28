@@ -1,6 +1,6 @@
 # Step 7 — Flutter Auth Notes
 
-This step completed the Flutter-side authentication flow for `jasmin_dashboard`.
+This step completed the Flutter-side authentication flow for `dytopup_dashboard`.
 
 ## Completed
 

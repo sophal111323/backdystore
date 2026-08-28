@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Step 15 lightweight smoke checks for JASMINTOPUP + JASMIN_DASHBOARD.
+"""Step 15 lightweight smoke checks for DYTOPUP + DY_DASHBOARD.
 This does not replace `npm run build` or `flutter analyze`; it verifies structure,
 route coverage, Flutter imports, and security-sensitive wiring without needing DB access.
 """
 from pathlib import Path
 import re
 
-flutter = Path('jasmin_dashboard/lib')
+flutter = Path('dytopup_dashboard/lib')
 results: list[tuple[str, bool, str]] = []
 
 
@@ -20,8 +20,8 @@ for file in flutter.rglob('*.dart'):
     for match in re.finditer(r"import\s+['\"]([^'\"]+)['\"]", text):
         import_path = match.group(1)
         candidate: Path | None = None
-        if import_path.startswith('package:jasmin_dashboard/'):
-            candidate = Path('jasmin_dashboard/lib') / import_path.split('package:jasmin_dashboard/', 1)[1]
+        if import_path.startswith('package:dytopup_dashboard/'):
+            candidate = Path('dytopup_dashboard/lib') / import_path.split('package:dytopup_dashboard/', 1)[1]
         elif import_path.startswith('../') or import_path.startswith('./'):
             candidate = (file.parent / import_path).resolve()
         if candidate is not None and not candidate.exists():
@@ -29,13 +29,13 @@ for file in flutter.rglob('*.dart'):
 check('Flutter import paths exist', not missing_imports, f'{len(missing_imports)} missing imports')
 
 for core_file in [
-    'jasmin_dashboard/pubspec.yaml',
-    'jasmin_dashboard/lib/main.dart',
-    'jasmin_dashboard/lib/app.dart',
-    'jasmin_dashboard/lib/core/network/api_client.dart',
-    'jasmin_dashboard/lib/core/network/auth_interceptor.dart',
-    'jasmin_dashboard/lib/core/storage/secure_token_storage.dart',
-    'jasmin_dashboard/lib/core/routing/app_router.dart',
+    'dytopup_dashboard/pubspec.yaml',
+    'dytopup_dashboard/lib/main.dart',
+    'dytopup_dashboard/lib/app.dart',
+    'dytopup_dashboard/lib/core/network/api_client.dart',
+    'dytopup_dashboard/lib/core/network/auth_interceptor.dart',
+    'dytopup_dashboard/lib/core/storage/secure_token_storage.dart',
+    'dytopup_dashboard/lib/core/routing/app_router.dart',
 ]:
     check(f'Core file exists: {core_file}', Path(core_file).exists())
 
@@ -78,7 +78,7 @@ secret_patterns = [
     r'KHPAY_API_KEY',
 ]
 secret_hits: list[tuple[str, str]] = []
-for file in Path('jasmin_dashboard').rglob('*'):
+for file in Path('dytopup_dashboard').rglob('*'):
     if file.is_file() and file.suffix in {'.dart', '.yaml'}:
         text = file.read_text(errors='ignore')
         for pattern in secret_patterns:
@@ -86,11 +86,11 @@ for file in Path('jasmin_dashboard').rglob('*'):
                 secret_hits.append((str(file), pattern))
 check('No backend secret names in Flutter Dart/YAML', not secret_hits, str(secret_hits[:10]))
 
-interceptor = Path('jasmin_dashboard/lib/core/network/auth_interceptor.dart').read_text(errors='ignore')
+interceptor = Path('dytopup_dashboard/lib/core/network/auth_interceptor.dart').read_text(errors='ignore')
 check('Flutter Bearer token interceptor present', 'Authorization' in interceptor and 'Bearer' in interceptor)
 check('Flutter 401 handling present', '401' in interceptor and ('clearToken' in interceptor or 'unauthorized' in interceptor.lower()))
 
-router = Path('jasmin_dashboard/lib/core/routing/app_router.dart').read_text(errors='ignore')
+router = Path('dytopup_dashboard/lib/core/routing/app_router.dart').read_text(errors='ignore')
 for route in [
     '/login', '/two-factor', '/dashboard', '/orders', '/products', '/games',
     '/banners', '/settings', '/faqs', '/customers', '/promo-codes',
@@ -105,7 +105,7 @@ for model in [
 ]:
     check(f'Prisma model {model} exists', f'model {model} ' in schema)
 
-for suffix, base in [('.dart', Path('jasmin_dashboard/lib')), ('.ts', Path('lib')), ('.tsx', Path('app'))]:
+for suffix, base in [('.dart', Path('dytopup_dashboard/lib')), ('.ts', Path('lib')), ('.tsx', Path('app'))]:
     bad_files: list[str] = []
     for file in base.rglob(f'*{suffix}'):
         text = file.read_text(errors='ignore')

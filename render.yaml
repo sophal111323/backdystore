@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: jasmintopup
+    name: dytopup
     runtime: node
     region: singapore   # closest to Cambodia
     plan: free

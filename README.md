@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/-RITHTOPUP-f97316?style=for-the-badge&labelColor=0f172a&logoColor=white" alt="JASMINTOPUP" />
+<img src="https://img.shields.io/badge/-RITHTOPUP-f97316?style=for-the-badge&labelColor=0f172a&logoColor=white" alt="DYTOPUP" />
 
 ### ⚡ Instant game top-up storefront for Cambodia
 
@@ -18,9 +18,9 @@ A production-ready **Next.js 14** platform for selling in-game credits — with 
 
 ---
 
-## 📦 Final JASMIN_DASHBOARD Deployment Guide
+## 📦 Final DY_DASHBOARD Deployment Guide
 
-This project now includes the connected Flutter admin app in `jasmin_dashboard/`.
+This project now includes the connected Flutter admin app in `dytopup_dashboard/`.
 
 For the final release checklist, backend deployment, Flutter Android/iOS build commands, production environment variables, and security checklist, read:
 
@@ -30,7 +30,7 @@ For the final release checklist, backend deployment, Flutter Android/iOS build c
 
 ## 🎯 What is this?
 
-**JASMINTOPUP** lets customers buy Diamonds / UC / Genesis Crystals / game passes using a single KHQR code scannable by **every major Cambodian bank app** — ABA Pay, ACLEDA Pay, Wing, TrueMoney, Chip Mong, Prince Bank, and more.
+**DYTOPUP** lets customers buy Diamonds / UC / Genesis Crystals / game passes using a single KHQR code scannable by **every major Cambodian bank app** — ABA Pay, ACLEDA Pay, Wing, TrueMoney, Chip Mong, Prince Bank, and more.
 
 | Customer side | Admin side |
 |---|---|

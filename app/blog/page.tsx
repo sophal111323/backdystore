@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Blog — JASMINOPUP",
+  title: "Blog — DYTOPUP",
   description: "Game updates, top-up guides and promotions.",
 };
 

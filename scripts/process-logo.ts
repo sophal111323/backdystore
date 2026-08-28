@@ -48,8 +48,8 @@ async function makeTransparent() {
 
   const buffer = await processed.toBuffer();
 
-  await sharp(buffer).toFile("public/jasmintopup-logo.png");
-  await sharp(buffer).toFile("public/jasmintopup-admin-logo.png");
+  await sharp(buffer).toFile("public/logo.png");
+  await sharp(buffer).toFile("public/logo.png");
   await sharp(buffer).toFile("public/dytopup-logo.png");
   await sharp(buffer).toFile("public/logo.png");
 

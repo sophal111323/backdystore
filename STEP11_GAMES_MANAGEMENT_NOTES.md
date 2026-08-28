@@ -1,6 +1,6 @@
 # Step 11 — Games Management
 
-This step builds the Flutter `JASMIN_DASHBOARD` Games Management feature.
+This step builds the Flutter `DY_DASHBOARD` Games Management feature.
 
 ## Scope completed
 
@@ -22,10 +22,10 @@ The current database has `publisher`, but it does not have a dedicated `category
 ## Test
 
 ```bash
-cd jasmin_dashboard
+cd dytopup_dashboard
 flutter pub get
 flutter analyze
-flutter run --dart-define=JASMIN_API_BASE_URL=http://10.0.2.2:3000
+flutter run --dart-define=DY_API_BASE_URL=http://10.0.2.2:3000
 ```
 
 After login and 2FA, open Games and test create/edit/hide/reorder/delete.
