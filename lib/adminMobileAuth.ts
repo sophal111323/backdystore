@@ -1,8 +1,7 @@
 import crypto from "crypto";
 import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma, type Admin } from "@/lib/prisma";
 import { getClientIp } from "@/lib/getIp";
-import type { Admin } from "@prisma/client";
 
 export const DEFAULT_ADMIN_CHALLENGE_TTL_SECONDS = 5 * 60;
 export const DEFAULT_ADMIN_MOBILE_SESSION_TTL_SECONDS = 8 * 60 * 60;
