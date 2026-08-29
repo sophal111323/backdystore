@@ -7,10 +7,7 @@
 
 generator client {
   provider = "prisma-client-js"
-
-  // Vercel lambdas run on Amazon Linux 2023 (openssl 3.0).
-  // Without this the generated engine binary may fail in production.
-  binaryTargets = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x", "debian-openssl-1.1.x", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
