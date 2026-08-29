@@ -223,6 +223,10 @@ export default function AdminOrderDetailPage() {
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                     Khmer TopUp
                   </span>
+                ) : order.topupProvider === "frozenyuki" || order.topupProvider === "soratopup" ? (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    FrozenYuki
+                  </span>
                 ) : order.topupProvider ? (
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                     {order.topupProvider}

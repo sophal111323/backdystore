@@ -1,8 +1,7 @@
 // lib/payment/index.ts
 //
 // Generic payment API. The rest of the app calls ONLY these functions —
-// never the provider directly. Swapping providers later means editing this
-// file and lib/payment/providers/*.
+// never the provider directly. Uses Tola Saint (https://tolasaint.com).
 
 import crypto from "crypto";
 import { assertProductionPaymentConfig } from "@/lib/payment-validation";
@@ -68,7 +67,7 @@ function simulatePayment(args: InitiatePaymentArgs): PaymentInitResult {
   return {
     paymentRef: ref,
     redirectUrl: `${base}/api/payment/simulate?order=${encodeURIComponent(args.orderNumber)}&ref=${encodeURIComponent(ref)}&method=${encodeURIComponent(args.method)}`,
-    expiresAt: new Date(Date.now() + 1 * 60 * 1000),
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000),
   };
 }
 

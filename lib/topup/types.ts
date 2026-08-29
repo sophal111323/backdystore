@@ -4,18 +4,18 @@
 // lib/topup/providers/* — the rest of the app calls the generic API in
 // lib/topup/index.ts only.
 
-export type TopupSupplierType = "bay2game" | "khmer_topup";
+export type TopupSupplierType = "bay2game" | "khmer_topup" | "frozenyuki" | "soratopup";
 
 export interface TopUpRequest {
   /** Unique reference — we always use the internal order number. */
   reference: string;
-  /** Provider product code (Product.supplierCode or Khmer TopUp package_id). */
+  /** Provider product code (Product.supplierCode or Khmer TopUp package_id or FrozenYuki code). */
   productCode: string;
   /** Player ID inside the game. */
   userId: string;
   /** Zone / server ID when the game requires it. */
   zoneId?: string;
-  /** Supplier to use ("bay2game" | "khmer_topup"). Defaults to "bay2game". */
+  /** Supplier to use ("bay2game" | "khmer_topup" | "frozenyuki"). Defaults to "bay2game". */
   supplier?: TopupSupplierType | string;
 }
 

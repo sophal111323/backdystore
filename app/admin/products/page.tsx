@@ -120,6 +120,10 @@ export default function AdminProductsPage() {
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                           Khmer TopUp
                         </span>
+                      ) : p.supplier === "frozenyuki" || p.supplier === "soratopup" ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          FrozenYuki
+                        </span>
                       ) : (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                           Bay2Game
@@ -205,6 +209,7 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
   }
 
   const isKhmerTopup = form.supplier === "khmer_topup";
+  const isFrozenYuki = form.supplier === "frozenyuki" || form.supplier === "soratopup";
 
   return (
     <form onSubmit={save} className="card p-6 mb-6">
@@ -259,28 +264,48 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
           >
             <option value="bay2game">Bay2Game</option>
             <option value="khmer_topup">Khmer TopUp</option>
+            <option value="frozenyuki">FrozenYuki / SoraTopup</option>
           </select>
         </div>
 
         {/* Dynamic Supplier Code / Package ID input */}
         <div className="md:col-span-2">
           <label className="label">
-            {isKhmerTopup ? "Khmer TopUp Package ID" : "Bay2Game Product Code"} — required for auto delivery
+            {isKhmerTopup
+              ? "Khmer TopUp Package ID"
+              : isFrozenYuki
+              ? "FrozenYuki Package Code (e.g. 100 or ff:100)"
+              : "Bay2Game Product Code"}{" "}
+            — required for auto delivery
           </label>
           <input
             className="input font-mono"
-            placeholder={isKhmerTopup ? "e.g. 268" : "e.g. FF_100_DIA, FF_WEEKLY_PASS"}
+            placeholder={
+              isKhmerTopup
+                ? "e.g. 268"
+                : isFrozenYuki
+                ? "e.g. 100 or ff:100 or ml:86"
+                : "e.g. FF_100_DIA, FF_WEEKLY_PASS"
+            }
             value={form.supplierCode}
             onChange={(e) => setForm({ ...form, supplierCode: e.target.value })}
           />
           {!form.supplierCode ? (
             <p className="mt-1 text-xs text-yellow-400">
-              ⚠️ Without this {isKhmerTopup ? "Package ID" : "Product Code"}, top-up will NOT be sent automatically after payment.
+              ⚠️ Without this{" "}
+              {isKhmerTopup
+                ? "Package ID"
+                : isFrozenYuki
+                ? "Package Code"
+                : "Product Code"}
+              , top-up will NOT be sent automatically after payment.
             </p>
           ) : (
             <p className="mt-1 text-xs text-fox-muted">
               {isKhmerTopup
                 ? "This numeric package_id will be sent to the Khmer TopUp API upon order completion."
+                : isFrozenYuki
+                ? "This package code will be sent to FrozenYuki / SoraTopup API upon order completion."
                 : "This product_code will be sent to the Bay2Game API upon order completion."}
             </p>
           )}

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getGameLookupConfig, lookupAidenGameNickname } from "@/lib/aidenGameLookup";
+import {
+  getGameLookupConfig,
+  lookupBay2GameNickname,
+} from "@/lib/gameLookup/bay2game";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -141,11 +144,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (cfg.needsZone && !serverId?.trim()) {
+  if (cfg.needsServer && !serverId?.trim()) {
     return NextResponse.json(
       {
         success: false,
-        error: "Zone ID is required",
+        error: "Server ID is required",
       },
       {
         status: 400,
@@ -154,20 +157,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const nickname = await lookupAidenGameNickname(
+  const lookupResult = await lookupBay2GameNickname(
     slug,
     uid.trim(),
-    cfg.needsZone ? serverId?.trim() : undefined,
+    cfg.needsServer ? serverId?.trim() : undefined,
   );
 
-  if (!nickname) {
+  if (!lookupResult.success || !lookupResult.username) {
+    const isClientError =
+      lookupResult.error === "Player not found — check your ID" ||
+      lookupResult.error === "Not supported in this region";
+    const status = isClientError ? 404 : 400;
+
     return NextResponse.json(
       {
         success: false,
-        error: "Player not found — check your ID",
+        error: lookupResult.error || "Player not found — check your ID",
       },
       {
-        status: 404,
+        status,
         headers: rateLimitHeaders,
       },
     );
@@ -176,9 +184,11 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(
     {
       success: true,
-      name: nickname,
+      name: lookupResult.username,
       uid,
       serverId: serverId ?? null,
+      ...(lookupResult.region ? { region: lookupResult.region } : {}),
+      ...(lookupResult.game ? { game: lookupResult.game } : {}),
     },
     {
       headers: rateLimitHeaders,

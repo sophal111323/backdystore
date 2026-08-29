@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notifyTelegram, escapeHtml } from "@/lib/telegram";
 import { fulfillPaidOrder } from "@/lib/fulfillment";
+import { getSupplier } from "@/lib/topup";
 
 /**
  * Runs post-payment work after an order safely transitions to PAID.
@@ -50,10 +51,8 @@ export async function notifyAndMaybeDeliverPaidOrder(orderId: string) {
   // Supplier & Topup status summary
   const supplierName =
     updatedOrder.product?.supplier || updatedOrder.topupProvider || "bay2game";
-  const supplierDisplayName =
-    supplierName.toLowerCase() === "khmer_topup"
-      ? "Khmer TopUp"
-      : "Bay2Game";
+  const supplier = getSupplier(supplierName);
+  const supplierDisplayName = supplier.displayName;
 
   let statusSection = "";
   if (updatedOrder.status === "DELIVERED") {

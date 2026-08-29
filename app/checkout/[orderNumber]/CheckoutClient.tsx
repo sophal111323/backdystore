@@ -339,7 +339,8 @@ function KHQRFrame({
               alt="KHQR code"
               width={230}
               height={230}
-              style={{ display: "block", marginBottom: 16 }}
+              unoptimized
+              style={{ display: "block", marginBottom: 16, objectFit: "contain" }}
             />
           ) : (
             <div style={{

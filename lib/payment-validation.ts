@@ -100,12 +100,12 @@ export function validatePaymentForOrder(
   const expectedCurrency = normalizeCurrency(order.currency || "USD");
   const remoteAmount = parseAmount(remotePayment.amount);
 
-  if (remoteOrderNumber !== order.orderNumber) {
+  if (remoteOrderNumber && remoteOrderNumber !== order.orderNumber) {
     return {
       ok: false,
       code: "ORDER_NUMBER_MISMATCH",
       message: "Payment order reference does not match this order.",
-      detail: `got=${remoteOrderNumber || "missing"}; expected=${order.orderNumber}`,
+      detail: `got=${remoteOrderNumber}; expected=${order.orderNumber}`,
     };
   }
 
@@ -177,7 +177,7 @@ export function validatePaymentForOrder(
     transactionId,
     amount: remoteAmount,
     currency: remoteCurrency,
-    orderNumber: remoteOrderNumber,
+    orderNumber: remoteOrderNumber || order.orderNumber,
   };
 }
 

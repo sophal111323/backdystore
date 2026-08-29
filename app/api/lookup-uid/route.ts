@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { checkRateLimitMemory } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getIp";
-import { getGameLookupConfig, lookupAidenGameNickname } from "@/lib/aidenGameLookup";
+import {
+  getGameLookupConfig,
+  lookupBay2GameNickname,
+} from "@/lib/gameLookup/bay2game";
 
 export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
   gameSlug: z.string().trim().min(1).max(60),
-  uid: z.string().trim().min(4).max(30),
+  uid: z.string().trim().min(1).max(30),
   server: z.string().trim().min(1).max(20).optional(),
 });
 
@@ -57,21 +60,24 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  if (cfg.needsZone && !server?.trim()) {
+  if (cfg.needsServer && !server?.trim()) {
     return NextResponse.json(
-      { nickname: null, verified: false, error: "Zone ID is required" },
+      { nickname: null, verified: false, error: "Server ID is required" },
       { status: 400 },
     );
   }
 
-  const nickname = await lookupAidenGameNickname(
+  const result = await lookupBay2GameNickname(
     gameSlug,
     uid.trim(),
-    cfg.needsZone ? server?.trim() : undefined,
+    cfg.needsServer ? server?.trim() : undefined,
   );
 
   return NextResponse.json({
-    nickname,
-    verified: nickname !== null,
+    nickname: result.username,
+    verified: result.success && Boolean(result.username),
+    ...(result.region ? { region: result.region } : {}),
+    ...(result.game ? { game: result.game } : {}),
+    ...(result.error && !result.success ? { error: result.error } : {}),
   });
 }

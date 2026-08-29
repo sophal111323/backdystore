@@ -30,6 +30,12 @@ import {
   normalizeKhmerTopupStatus,
 } from "./providers/khmer-topup";
 
+import {
+  frozenyukiSupplier,
+  FrozenYukiSupplier,
+  normalizeFrozenYukiStatus,
+} from "./providers/frozenyuki";
+
 export type {
   TopupSupplier,
   TopupSupplierType,
@@ -44,13 +50,18 @@ export {
   Bay2GameSupplier,
   khmerTopupSupplier,
   KhmerTopupSupplier,
+  frozenyukiSupplier,
+  FrozenYukiSupplier,
   normalizeBay2GameStatus,
   normalizeKhmerTopupStatus,
+  normalizeFrozenYukiStatus,
 };
 
 const suppliers: Record<string, TopupSupplier> = {
   bay2game: bay2gameSupplier,
   khmer_topup: khmerTopupSupplier,
+  frozenyuki: frozenyukiSupplier,
+  soratopup: frozenyukiSupplier,
 };
 
 /**

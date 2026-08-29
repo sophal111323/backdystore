@@ -17,9 +17,9 @@ const productSchema = z
     priceKhr: z.number().positive().optional().nullable(),
     badge: z.string().optional().nullable(),
     imageUrl: z.string().optional().nullable(),
-    active: z.boolean().default(true),
-    sortOrder: z.number().int().default(0),
-    supplier: z.enum(["bay2game", "khmer_topup"]).default("bay2game"),
+    supplier: z
+      .enum(["bay2game", "khmer_topup", "frozenyuki", "soratopup"])
+      .default("bay2game"),
     supplierCode: z.string().optional().nullable(),
     supplierProductCode: z.string().optional().nullable(),
   })
