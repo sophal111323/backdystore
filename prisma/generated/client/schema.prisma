@@ -63,12 +63,12 @@ model Product {
 }
 
 model Order {
-  id               String     @id @default(cuid())
-  orderNumber      String     @unique
+  id               String    @id @default(cuid())
+  orderNumber      String    @unique
   gameId           String
-  game             Game       @relation(fields: [gameId], references: [id])
+  game             Game      @relation(fields: [gameId], references: [id])
   productId        String
-  product          Product    @relation(fields: [productId], references: [id])
+  product          Product   @relation(fields: [productId], references: [id])
   playerUid        String
   serverId         String?
   playerNickname   String?
@@ -76,13 +76,13 @@ model Order {
   customerPhone    String?
   amountUsd        Float
   amountKhr        Float?
-  currency         String     @default("USD")
+  currency         String    @default("USD")
   paymentMethod    String
-  paymentRef       String?    @unique
+  paymentRef       String?   @unique
   paymentUrl       String?
   qrString         String?
   paymentExpiresAt DateTime?
-  status           String     @default("PENDING")
+  status           String    @default("PENDING")
   deliveryNote     String?
   failureReason    String?
   ipAddress        String?

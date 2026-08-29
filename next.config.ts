@@ -25,10 +25,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@prisma/client", "pdfkit", "fontkit"],
+  serverExternalPackages: ["pdfkit", "fontkit"],
   outputFileTracingRoot: path.resolve(__dirname),
   outputFileTracingIncludes: {
-    "/**": ["./node_modules/.prisma/client/**", "./prisma/**"],
+    "/**": ["./prisma/generated/client/**", "./prisma/**"],
   },
   poweredByHeader: false,
 

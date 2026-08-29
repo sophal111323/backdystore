@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdminFromRequest } from "@/lib/auth";
-import type { Admin } from "@prisma/client";
+import type { Admin } from "@/lib/prisma";
 import {
   forbiddenResponse,
   hasAnyAdminPermission,
