@@ -6,9 +6,13 @@ import {
   rejectSuspiciousQuery,
   safeJson,
 } from "@/lib/apiSecurity";
+import { refreshTopupStatus } from "@/lib/fulfillment";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+// Prevent slamming supplier status check if user polls rapidly (throttle 5s per order)
+const lastTopupSyncMap = new Map<string, number>();
 
 function normalizeOrderNumber(value: string | null): string {
   return String(value ?? "").trim().toUpperCase();
@@ -36,7 +40,7 @@ export async function GET(req: NextRequest) {
     return safeJson({ error: "Order not found" }, { status: 404 }, API_NO_STORE);
   }
 
-  const order = await prisma.order.findUnique({
+  let order = await prisma.order.findUnique({
     where: { orderNumber },
     select: {
       orderNumber: true,
@@ -51,6 +55,7 @@ export async function GET(req: NextRequest) {
       paidAt: true,
       deliveredAt: true,
       paymentExpiresAt: true,
+      topupProviderRef: true,
       game: { select: { name: true, slug: true } },
       product: { select: { name: true } },
     },
@@ -58,6 +63,52 @@ export async function GET(req: NextRequest) {
 
   if (!order) {
     return safeJson({ error: "Order not found" }, { status: 404 }, API_NO_STORE);
+  }
+
+  // 🚀 Auto-sync: If order is PROCESSING with a topupProviderRef, check supplier
+  // so the website automatically transitions to DELIVERED when diamonds are sent.
+  if (order.status === "PROCESSING" && order.topupProviderRef) {
+    const now = Date.now();
+    const lastSync = lastTopupSyncMap.get(orderNumber) || 0;
+    if (now - lastSync >= 5000) {
+      lastTopupSyncMap.set(orderNumber, now);
+      // Clean up old cache entries periodically
+      if (lastTopupSyncMap.size > 200) {
+        lastTopupSyncMap.clear();
+      }
+
+      try {
+        const refreshed = await refreshTopupStatus(order.orderNumber);
+        if (
+          refreshed.success &&
+          (refreshed.status === "success" || refreshed.status === "completed")
+        ) {
+          const fresh = await prisma.order.findUnique({
+            where: { orderNumber },
+            select: {
+              orderNumber: true,
+              status: true,
+              paymentMethod: true,
+              playerUid: true,
+              serverId: true,
+              amountUsd: true,
+              amountKhr: true,
+              currency: true,
+              createdAt: true,
+              paidAt: true,
+              deliveredAt: true,
+              paymentExpiresAt: true,
+              topupProviderRef: true,
+              game: { select: { name: true, slug: true } },
+              product: { select: { name: true } },
+            },
+          });
+          if (fresh) order = fresh;
+        }
+      } catch (err) {
+        console.warn("[api/orders/status] Auto topup sync error:", err);
+      }
+    }
   }
 
   const isPending = order.status === "PENDING";
