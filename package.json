@@ -20,7 +20,7 @@
     "@marsidev/react-turnstile": "^1.6.1",
     "@neondatabase/serverless": "^0.10.4",
     "@prisma/adapter-neon": "^5.22.0",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^7.10.0",
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.112.4",
     "@tailwindcss/postcss": "^4.3.3",
