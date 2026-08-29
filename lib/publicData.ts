@@ -81,39 +81,50 @@ export const getPublicSettings = unstable_cache(
   }
 );
 
+async function withDbRetry<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch {
+    await new Promise((r) => setTimeout(r, 600));
+    return await fn();
+  }
+}
+
 export const getPublicHomeData = unstable_cache(
   async () => {
-    const [games, banners] = await Promise.all([
-      prisma.game.findMany({
-        where: { active: true },
-        orderBy: [{ featured: "desc" }, { sortOrder: "asc" }],
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          publisher: true,
-          currencyName: true,
-          imageUrl: true,
-          featured: true,
-        },
-      }),
-      prisma.heroBanner.findMany({
-        where: { active: true },
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-        select: {
-          id: true,
-          title: true,
-          subtitle: true,
-          imageUrl: true,
-          linkUrl: true,
-          ctaLabel: true,
-        },
-      }),
-    ]);
+    return withDbRetry(async () => {
+      const [games, banners] = await Promise.all([
+        prisma.game.findMany({
+          where: { active: true },
+          orderBy: [{ featured: "desc" }, { sortOrder: "asc" }],
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            publisher: true,
+            currencyName: true,
+            imageUrl: true,
+            featured: true,
+          },
+        }),
+        prisma.heroBanner.findMany({
+          where: { active: true },
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+          select: {
+            id: true,
+            title: true,
+            subtitle: true,
+            imageUrl: true,
+            linkUrl: true,
+            ctaLabel: true,
+          },
+        }),
+      ]);
 
-    return { games, banners };
+      return { games, banners };
+    });
   },
-  ["public-home-v2"],
+  ["public-home-v3"],
   {
     tags: ["home", "games", "banners"],
     revalidate: PUBLIC_DATA_REVALIDATE_SECONDS,

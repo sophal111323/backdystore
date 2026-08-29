@@ -121,6 +121,7 @@ export default function Header() {
               alt="DyTopup Logo"
               width={64}
               height={44}
+              style={{ width: "auto", height: "auto" }}
               className="h-11 w-auto object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
               priority
             />
@@ -236,6 +237,7 @@ export default function Header() {
                   alt="DyTopup Logo"
                   width={60}
                   height={44}
+                  style={{ width: "auto", height: "auto" }}
                   className="h-11 w-auto object-contain"
                   priority
                 />
