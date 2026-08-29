@@ -33,6 +33,7 @@ yarn-error.log*
 # Prisma
 /prisma/*.db
 /prisma/*.db-journal
+/prisma/generated/
 
 # User-uploaded images (admin panel)
 # Keep folder structure but ignore actual uploaded images in git
