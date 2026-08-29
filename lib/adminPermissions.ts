@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { Admin } from "@prisma/client";
+import type { Admin } from "./prisma";
 
 export type NormalizedAdminRole = "OWNER" | "ADMIN" | "SUPPORT";
 
