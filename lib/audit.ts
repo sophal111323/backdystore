@@ -1,6 +1,6 @@
 import { prisma } from "./prisma";
 import { getCurrentAdmin } from "./auth";
-import type { Admin } from "@prisma/client";
+import type { Admin } from "./prisma";
 import type { NextRequest } from "next/server";
 import { getClientIp } from "@/lib/getIp";
 

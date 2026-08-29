@@ -25,7 +25,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["pdfkit", "fontkit"],
+  serverExternalPackages: ["pdfkit", "fontkit", "ws"],
   outputFileTracingRoot: path.resolve(__dirname),
   poweredByHeader: false,
 
