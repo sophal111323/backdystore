@@ -16,7 +16,10 @@ const updateSchema = z
     priceUsd: z.number().positive().optional(),
     priceKhr: z.number().positive().nullable().optional(),
     badge: z.string().nullable().optional(),
+    category: z.string().nullable().optional(),
     imageUrl: z.string().nullable().optional(),
+    active: z.boolean().optional(),
+    sortOrder: z.number().int().optional(),
     supplier: z
       .enum(["bay2game", "khmer_topup", "frozenyuki", "soratopup"])
       .optional(),
@@ -31,6 +34,7 @@ const updateSchema = z
     const { supplierProductCode, ...rest } = data;
     return {
       ...rest,
+      ...(rest.category !== undefined ? { category: rest.category ? rest.category.trim() : "Diamonds" } : {}),
       ...(code !== undefined ? { supplierCode: code ? code.trim() : null } : {}),
     };
   });

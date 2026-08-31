@@ -3,6 +3,36 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+const CATEGORY_PRESETS = [
+  "Diamonds",
+  "Weekly Lite",
+  "Weekly Membership",
+  "3 in 1",
+  "Pass",
+  "Other",
+];
+
+const BADGE_PRESETS = [
+  "ទទួលបាន20💎",
+  "ទទួលបាន40💎",
+  "ទទួលបាន60💎",
+  "ទទួលបាន80💎",
+  "ទទួលបាន100💎",
+  "ទទួលបាន120💎",
+  "ទទួលបាន140💎",
+  "ទទួលបាន160💎",
+  "ទទួលបាន180💎",
+  "ទទួលបាន200💎",
+  "ទទួលបាន400💎",
+  "ទទួលបាន600💎",
+  "ទទួលបាន800💎",
+  "ទទួលបាន1220💎",
+  "Hot",
+  "Best Value",
+  "Pass",
+  "Instant",
+];
+
 export default function AdminProductsPage() {
   const searchParams = useSearchParams();
   const gameIdFilter = searchParams.get("gameId") || "";
@@ -10,6 +40,7 @@ export default function AdminProductsPage() {
   const [games, setGames] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [selectedGame, setSelectedGame] = useState(gameIdFilter);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
@@ -20,8 +51,8 @@ export default function AdminProductsPage() {
       fetch("/api/admin/games").then((r) => r.json()),
       fetch(`/api/admin/products${selectedGame ? `?gameId=${selectedGame}` : ""}`).then((r) => r.json()),
     ]);
-    setGames(gRes);
-    setProducts(pRes);
+    setGames(Array.isArray(gRes) ? gRes : []);
+    setProducts(Array.isArray(pRes) ? pRes : []);
     setLoading(false);
   }
 
@@ -45,28 +76,60 @@ export default function AdminProductsPage() {
     await loadAll();
   }
 
+  // Get distinct categories from loaded products
+  const availableCategories = Array.from(
+    new Set(
+      products
+        .map((p) => p.category || "Diamonds")
+        .filter(Boolean)
+    )
+  );
+
+  const filteredProducts = products.filter((p) => {
+    if (!selectedCategory) return true;
+    return (p.category || "Diamonds") === selectedCategory;
+  });
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="font-display text-3xl font-bold">Products</h1>
-          <p className="text-fox-muted">Top-up packages for sale.</p>
+          <p className="text-fox-muted">Top-up packages grouped by type/category for customers.</p>
         </div>
         <button onClick={() => setCreating(true)} className="btn-primary">+ Add Product</button>
       </div>
 
-      <div className="card p-4 mb-6">
-        <label className="label">Filter by game</label>
-        <select
-          className="input max-w-sm"
-          value={selectedGame}
-          onChange={(e) => setSelectedGame(e.target.value)}
-        >
-          <option value="">All games</option>
-          {games.map((g) => (
-            <option key={g.id} value={g.id}>{g.name}</option>
-          ))}
-        </select>
+      <div className="card p-4 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="label">Filter by Game</label>
+          <select
+            className="input w-full"
+            value={selectedGame}
+            onChange={(e) => setSelectedGame(e.target.value)}
+          >
+            <option value="">All games</option>
+            {games.map((g) => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="label">Filter by Package Type / Category</label>
+          <select
+            className="input w-full"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
+            <option value="">All Categories ({products.length} products)</option>
+            {availableCategories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat} ({products.filter((p) => (p.category || "Diamonds") === cat).length})
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {(creating || editing) && (
@@ -85,6 +148,7 @@ export default function AdminProductsPage() {
             <thead className="bg-fox-surface text-fox-muted text-xs uppercase tracking-wider">
               <tr>
                 <th className="text-left px-5 py-3">Game</th>
+                <th className="text-left px-5 py-3">Category / Type</th>
                 <th className="text-left px-5 py-3">Name</th>
                 <th className="text-right px-5 py-3">Amount</th>
                 <th className="text-right px-5 py-3">Bonus</th>
@@ -98,23 +162,42 @@ export default function AdminProductsPage() {
             </thead>
             <tbody className="divide-y divide-fox-border">
               {loading ? (
-                <tr><td colSpan={10} className="px-5 py-12 text-center text-fox-muted">Loading...</td></tr>
-              ) : products.length === 0 ? (
-                <tr><td colSpan={10} className="px-5 py-16 text-center">
+                <tr><td colSpan={11} className="px-5 py-12 text-center text-fox-muted">Loading...</td></tr>
+              ) : filteredProducts.length === 0 ? (
+                <tr><td colSpan={11} className="px-5 py-16 text-center">
                     <div className="text-4xl mb-3">💎</div>
-                    <p className="text-fox-muted mb-1">No products yet</p>
+                    <p className="text-fox-muted mb-1">No products found</p>
                     <p className="text-xs text-fox-muted/60 mb-3">Add packages for customers to purchase.</p>
                     <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 rounded-lg bg-fox-primary px-4 py-2 text-sm font-semibold text-black hover:bg-fox-primary/90 transition-colors">+ Add Product</button>
                 </td></tr>
               ) : (
-                products.map((p) => (
+                filteredProducts.map((p) => (
                   <tr key={p.id} className="hover:bg-fox-surface/50">
-                    <td className="px-5 py-3 text-fox-muted">{p.game.name}</td>
-                    <td className="px-5 py-3 font-medium">{p.name}</td>
+                    <td className="px-5 py-3 text-fox-muted font-medium">{p.game.name}</td>
+                    <td className="px-5 py-3">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-pink-500/15 text-pink-300 border border-pink-500/30">
+                        {p.category || "Diamonds"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 font-medium">
+                      <div className="flex items-center gap-2">
+                        {p.imageUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.imageUrl} alt="" className="h-6 w-6 object-contain rounded shrink-0" />
+                        )}
+                        <span>{p.name}</span>
+                      </div>
+                    </td>
                     <td className="px-5 py-3 text-right font-mono">{p.amount.toLocaleString()}</td>
                     <td className="px-5 py-3 text-right font-mono text-fox-accent">{p.bonus > 0 ? `+${p.bonus}` : "—"}</td>
-                    <td className="px-5 py-3 text-right font-mono text-fox-primary">${p.priceUsd.toFixed(2)}</td>
-                    <td className="px-5 py-3 text-xs">{p.badge || "—"}</td>
+                    <td className="px-5 py-3 text-right font-mono text-fox-primary font-bold">${p.priceUsd.toFixed(2)}</td>
+                    <td className="px-5 py-3 text-xs">
+                      {p.badge ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          {p.badge}
+                        </span>
+                      ) : "—"}
+                    </td>
                     <td className="px-5 py-3 text-xs">
                       {p.supplier === "khmer_topup" ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
@@ -163,6 +246,7 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
   const [form, setForm] = useState({
     gameId: initial?.gameId || defaultGameId || games[0]?.id || "",
     name: initial?.name || "",
+    category: initial?.category || "Diamonds",
     amount: initial?.amount ?? 0,
     bonus: initial?.bonus ?? 0,
     priceUsd: initial?.priceUsd ?? 0,
@@ -183,6 +267,7 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
     setError(null);
     const payload = {
       ...form,
+      category: form.category?.trim() || "Diamonds",
       amount: Number(form.amount),
       bonus: Number(form.bonus),
       priceUsd: Number(form.priceUsd),
@@ -233,12 +318,42 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
             {games.map((g: any) => <option key={g.id} value={g.id}>{g.name}</option>)}
           </select>
         </div>
+
+        {/* Category / Package Type */}
         <div className="md:col-span-3">
-          <label className="label">Product Name (e.g. &quot;86 Diamonds&quot;)</label>
+          <label className="label">Package Type / Category (ប្រភេទកញ្ចប់)</label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {CATEGORY_PRESETS.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setForm({ ...form, category: cat })}
+                className={`px-3 py-1 text-xs rounded-full border transition-all ${
+                  form.category === cat
+                    ? "bg-pink-500 text-white font-semibold border-pink-500 shadow-sm"
+                    : "bg-fox-surface text-fox-muted border-fox-border hover:border-pink-400 hover:text-white"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <input
+            className="input"
+            placeholder="e.g. Diamonds, Weekly Lite, Weekly Membership, 3 in 1, Pass, Other..."
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            required
+          />
+        </div>
+
+        <div className="md:col-span-3">
+          <label className="label">Product Name (e.g. &quot;55 Diamonds&quot;, &quot;Weekly Lite&quot;, &quot;3in1&quot;)</label>
           <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         </div>
+
         <div>
-          <label className="label">Amount (0 for passes)</label>
+          <label className="label">Amount (0 for passes/special cards)</label>
           <input className="input" type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
         </div>
         <div>
@@ -249,9 +364,41 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
           <label className="label">Price (USD)</label>
           <input className="input" type="number" step="0.01" value={form.priceUsd} onChange={(e) => setForm({ ...form, priceUsd: e.target.value })} required />
         </div>
-        <div>
-          <label className="label">Badge (Hot / Best Value / Pass / custom)</label>
-          <input className="input" value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} />
+
+        {/* Badge / Tag */}
+        <div className="md:col-span-3">
+          <label className="label">Badge Tag (ស្លាកសញ្ញាលើកញ្ចប់ e.g. ទទួលបាន20💎, Hot, Best Value)</label>
+          <div className="flex flex-wrap gap-1.5 mb-2 max-h-24 overflow-y-auto">
+            {BADGE_PRESETS.map((b) => (
+              <button
+                key={b}
+                type="button"
+                onClick={() => setForm({ ...form, badge: b })}
+                className={`px-2.5 py-0.5 text-xs rounded-md border transition-all ${
+                  form.badge === b
+                    ? "bg-amber-500 text-black font-bold border-amber-400"
+                    : "bg-fox-surface text-fox-muted border-fox-border hover:border-amber-400/60"
+                }`}
+              >
+                {b}
+              </button>
+            ))}
+            {form.badge && (
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, badge: "" })}
+                className="px-2.5 py-0.5 text-xs rounded-md border border-red-500/40 text-red-400 hover:bg-red-500/10"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <input
+            className="input"
+            placeholder="e.g. ទទួលបាន20💎, ទទួលបាន1220💎, Hot, Best Value, Pass, etc."
+            value={form.badge}
+            onChange={(e) => setForm({ ...form, badge: e.target.value })}
+          />
         </div>
 
         {/* Supplier / API Provider Selection */}
@@ -336,7 +483,7 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
                   <span className="text-xs opacity-60">PNG, JPG, WEBP — max 5MB</span>
                 </>
               )}
-              <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+              <input type="file" accept="image/png,image/jpeg,image/webp"
                 className="hidden" disabled={uploadingImage}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { isValidUid, isValidServerId, formatUsd } from "@/lib/utils";
 import { useCurrency } from "@/lib/currency";
 import { QrCode, ArrowRight, Lock, Check, Smartphone, Search, UserRoundCheck, AlertCircle, Tag, Loader2,  } from "lucide-react";
@@ -22,6 +22,7 @@ interface Product {
   bonus: number;
   priceUsd: number;
   badge: string | null;
+  category?: string | null;
   imageUrl: string | null;
 }
 
@@ -59,6 +60,22 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
   // Dismissed state — persists across page refresh via sessionStorage
   const [dismissed, setDismissed] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(true);
+
+  // Group products by category
+  const groupedProducts = useMemo(() => {
+    const map = new Map<string, Product[]>();
+    for (const p of products) {
+      const cat = (p.category || "").trim() || "Diamonds";
+      if (!map.has(cat)) {
+        map.set(cat, []);
+      }
+      map.get(cat)!.push(p);
+    }
+    return Array.from(map.entries()).map(([category, items]) => ({
+      category,
+      items,
+    }));
+  }, [products]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -360,112 +377,135 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
             </div>
           </div>
 
-          {/* ✅ Step 2: Pick Package — REDESIGNED */}
+          {/* ✅ Step 2: Pick Package — Categorized with Original Card Design */}
           <div className="fade-up" style={{ animationDelay: "80ms" }}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full font-extrabold text-white shadow-lg shadow-pink-300/40" style={{background:"linear-gradient(135deg,#E91E8C,#FF6EB4)"}}>
+            <div className="flex items-center gap-3 mb-5">
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-full font-extrabold text-white shadow-lg shadow-pink-300/40"
+                style={{ background: "linear-gradient(135deg,#E91E8C,#FF6EB4)" }}
+              >
                 2
               </div>
               <h2 className="font-display text-xl font-extrabold text-pink-800">ជ្រើសរើសកញ្ចប់</h2>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-              {products.map((p) => {
-                const isSelected = selected === p.id;
-                return (
-                  <button
-                    type="button"
-                    key={p.id}
-                    onClick={() => setSelected(p.id)}
-                    className={`group relative overflow-hidden text-center rounded-2xl border-2 p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
-                      isSelected
-                        ? "border-pink-400 bg-gradient-to-b from-pink-50 to-white shadow-xl shadow-pink-300/40 ring-2 ring-pink-400/40"
-                        : "border-pink-100 bg-white hover:border-pink-300 hover:shadow-pink-200/60"
-                    }`}
-                    style={{
-                      background: isSelected
-                        ? "linear-gradient(160deg, #fff0f6 0%, #ffffff 100%)"
-                        : undefined,
-                    }}
-                  >
-                    {/* Shimmer on selected */}
-                    {isSelected && (
-                      <span className="pointer-events-none absolute inset-0 opacity-50">
-                        <span className="absolute -inset-y-1 -left-1/3 w-1/3 rotate-12 bg-gradient-to-r from-transparent via-pink-200/60 to-transparent animate-shimmer" />
-                      </span>
-                    )}
-
-                    {/* Checkmark top-left */}
-                    <span
-                      className={`absolute top-2.5 left-2.5 flex h-6 w-6 items-center justify-center rounded-full transition-all duration-200 ${
-                        isSelected
-                          ? "bg-pink-500 shadow-md shadow-pink-300/50 scale-100"
-                          : "bg-pink-100 scale-90"
-                      }`}
-                    >
-                      <svg className={`h-3.5 w-3.5 transition-colors ${isSelected ? "text-white" : "text-pink-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                        <path d="M5 13l4 4L19 7" />
-                      </svg>
+            {/* Categorized Sections */}
+            <div className="space-y-6">
+              {groupedProducts.map((group) => (
+                <div key={group.category} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-base text-pink-900 tracking-tight">
+                      {group.category}
+                    </h3>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-pink-100 text-pink-600 border border-pink-200">
+                      {group.items.length}
                     </span>
+                  </div>
 
-                    {/* Badge */}
-                    {p.badge && (
-                      <div className="absolute -top-2 right-3 z-10">
-                        {p.badge === "Hot" && <span className="badge-hot">Hot</span>}
-                        {p.badge === "Best Value" && <span className="badge-best">Best</span>}
-                        {p.badge === "Pass" && <span className="badge-pass">Pass</span>}
-                        {!["Hot", "Best Value", "Pass"].includes(p.badge) && (
-                          <span className="badge-best">{p.badge}</span>
-                        )}
-                      </div>
-                    )}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                    {group.items.map((p) => {
+                      const isSelected = selected === p.id;
+                      return (
+                        <button
+                          type="button"
+                          key={p.id}
+                          onClick={() => setSelected(p.id)}
+                          className={`group relative overflow-hidden text-center rounded-2xl border-2 p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                            isSelected
+                              ? "border-pink-400 bg-gradient-to-b from-pink-50 to-white shadow-xl shadow-pink-300/40 ring-2 ring-pink-400/40"
+                              : "border-pink-100 bg-white hover:border-pink-300 hover:shadow-pink-200/60"
+                          }`}
+                          style={{
+                            background: isSelected
+                              ? "linear-gradient(160deg, #fff0f6 0%, #ffffff 100%)"
+                              : undefined,
+                          }}
+                        >
+                          {/* Shimmer on selected */}
+                          {isSelected && (
+                            <span className="pointer-events-none absolute inset-0 opacity-50">
+                              <span className="absolute -inset-y-1 -left-1/3 w-1/3 rotate-12 bg-gradient-to-r from-transparent via-pink-200/60 to-transparent animate-shimmer" />
+                            </span>
+                          )}
 
-                    {/* Product Image */}
-                    {p.imageUrl && (
-                      <div className="flex justify-center mb-3 mt-1">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={p.imageUrl}
-                          alt={p.name}
-                          className="h-16 w-16 sm:h-20 sm:w-20 object-contain rounded-xl shadow-md shadow-pink-200/50 group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
+                          {/* Checkmark top-left */}
+                          <span
+                            className={`absolute top-2.5 left-2.5 flex h-6 w-6 items-center justify-center rounded-full transition-all duration-200 ${
+                              isSelected
+                                ? "bg-pink-500 shadow-md shadow-pink-300/50 scale-100"
+                                : "bg-pink-100 scale-90"
+                            }`}
+                          >
+                            <svg className={`h-3.5 w-3.5 transition-colors ${isSelected ? "text-white" : "text-pink-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              <path d="M5 13l4 4L19 7" />
+                            </svg>
+                          </span>
 
-                    {/* Product Name */}
-                    <div className="font-semibold text-sm text-pink-800 leading-tight mb-1">
-                      {p.name}
-                    </div>
-                    {p.bonus > 0 && (
-                      <div className="text-xs text-pink-400 font-semibold">
-                        + {p.bonus} bonus
-                      </div>
-                    )}
+                          {/* Badge */}
+                          {p.badge && (
+                            <div className="absolute -top-2 right-3 z-10">
+                              {p.badge === "Hot" && <span className="badge-hot">Hot</span>}
+                              {p.badge === "Best Value" && <span className="badge-best">Best</span>}
+                              {p.badge === "Pass" && <span className="badge-pass">Pass</span>}
+                              {!["Hot", "Best Value", "Pass"].includes(p.badge) && (
+                                <span className="badge-best">{p.badge}</span>
+                              )}
+                            </div>
+                          )}
 
-                    {/* Sparkle divider */}
-                    <div className="flex items-center gap-1.5 my-2.5 px-1">
-                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-pink-200 to-pink-300" />
-                      <svg className="h-2.5 w-2.5 text-pink-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
-                      </svg>
-                      <div className="flex-1 h-px bg-gradient-to-l from-transparent via-pink-200 to-pink-300" />
-                    </div>
+                          {/* Product Image */}
+                          {p.imageUrl ? (
+                            <div className="flex justify-center mb-3 mt-1">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={p.imageUrl}
+                                alt={p.name}
+                                className="h-16 w-16 sm:h-20 sm:w-20 object-contain rounded-xl shadow-md shadow-pink-200/50 group-hover:scale-105 transition-transform duration-300"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex justify-center mb-3 mt-1 text-3xl">
+                              💎
+                            </div>
+                          )}
 
-                    {/* Price with sparkles */}
-                    <div className="flex items-center justify-center gap-1.5">
-                      <svg className={`h-3 w-3 shrink-0 transition-colors ${isSelected ? "text-pink-500" : "text-pink-300"}`} viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
-                      </svg>
-                      <span className={`font-mono font-extrabold text-base sm:text-lg transition-colors ${isSelected ? "text-pink-600" : "text-pink-500"}`}>
-                        {format(p.priceUsd)}
-                      </span>
-                      <svg className={`h-3 w-3 shrink-0 transition-colors ${isSelected ? "text-pink-500" : "text-pink-300"}`} viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
-                      </svg>
-                    </div>
-                  </button>
-                );
-              })}
+                          {/* Product Name */}
+                          <div className="font-semibold text-sm text-pink-800 leading-tight mb-1">
+                            {p.name}
+                          </div>
+                          {p.bonus > 0 && (
+                            <div className="text-xs text-pink-400 font-semibold">
+                              + {p.bonus} bonus
+                            </div>
+                          )}
+
+                          {/* Sparkle divider */}
+                          <div className="flex items-center gap-1.5 my-2.5 px-1">
+                            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-pink-200 to-pink-300" />
+                            <svg className="h-2.5 w-2.5 text-pink-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
+                            </svg>
+                            <div className="flex-1 h-px bg-gradient-to-l from-transparent via-pink-200 to-pink-300" />
+                          </div>
+
+                          {/* Price with sparkles */}
+                          <div className="flex items-center justify-center gap-1.5">
+                            <svg className={`h-3 w-3 shrink-0 transition-colors ${isSelected ? "text-pink-500" : "text-pink-300"}`} viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
+                            </svg>
+                            <span className={`font-mono font-extrabold text-base sm:text-lg transition-colors ${isSelected ? "text-pink-600" : "text-pink-500"}`}>
+                              {format(p.priceUsd)}
+                            </span>
+                            <svg className={`h-3 w-3 shrink-0 transition-colors ${isSelected ? "text-pink-500" : "text-pink-300"}`} viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
+                            </svg>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

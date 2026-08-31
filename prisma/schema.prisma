@@ -52,6 +52,7 @@ model Product {
   priceUsd     Float
   priceKhr     Float?
   badge        String?
+  category     String?  @default("Diamonds")
   imageUrl     String?
   active       Boolean  @default(true)
   sortOrder    Int      @default(0)
@@ -62,6 +63,17 @@ model Product {
   updatedAt    DateTime @updatedAt
 
   @@index([gameId, active])
+}
+
+model UploadedFile {
+  id        String   @id @default(cuid())
+  filename  String   @unique
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt DateTime @default(now())
+
+  @@index([filename])
 }
 
 model Order {

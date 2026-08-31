@@ -56,6 +56,7 @@ export async function GET(
             priceUsd: true,
             priceKhr: true,
             badge: true,
+            category: true,
             imageUrl: true,
             sortOrder: true,
           },

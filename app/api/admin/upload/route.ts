@@ -1,9 +1,10 @@
 /**
- * /api/admin/upload — Secure file upload
+ * /api/admin/upload — Secure file upload (Vercel Serverless & Localhost compatible)
  *
  * Supports:
  * - Cloudinary upload (if CLOUDINARY_* environment variables are set)
- * - Local filesystem fallback (/public/uploads) when Cloudinary is not configured
+ * - Serverless Database Storage (Neon Postgres) via /api/uploads/[filename]
+ * - Local filesystem caching (/public/uploads) when writable
  * - Allowed types: PNG, JPG/JPEG, WEBP
  * - Magic-byte validation
  * - Admin authorization
@@ -14,6 +15,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { withAdminAuth } from "@/lib/withAdminAuth";
 import { applyRateLimit } from "@/lib/rateLimit";
 import { logSecurityEvent } from "@/lib/secureLogger";
+import { prisma } from "@/lib/prisma";
 import fs from "fs";
 import path from "path";
 
@@ -121,7 +123,7 @@ export const POST = withAdminAuth(
         );
       }
 
-      // ── Option A: Cloudinary Upload ───────────────────────────────────────
+      // ── Option A: Cloudinary Upload (if keys configured) ───────────────────
       if (hasCloudinary) {
         try {
           const base64 = `data:${mimeType};base64,${buffer.toString("base64")}`;
@@ -140,20 +142,34 @@ export const POST = withAdminAuth(
             type: mimeType,
           });
         } catch (cloudErr) {
-          console.warn("[upload] Cloudinary failed, falling back to local storage:", cloudErr);
+          console.warn("[upload] Cloudinary failed, falling back to database storage:", cloudErr);
         }
       }
 
-      // ── Option B: Local Disk Storage (/public/uploads) ────────────────────
-      const uploadDir = path.join(process.cwd(), "public", "uploads");
-      await fs.promises.mkdir(uploadDir, { recursive: true });
-
+      // ── Option B: Database Storage (Vercel Serverless Compatible) ─────────
       const filename = generateSafeFilename(ext);
-      const filePath = path.join(uploadDir, filename);
 
-      await fs.promises.writeFile(filePath, buffer);
+      await prisma.uploadedFile.create({
+        data: {
+          filename,
+          mimeType,
+          size: file.size,
+          data: buffer,
+        },
+      });
 
-      const publicUrl = `/uploads/${filename}`;
+      // Try local filesystem write if non-Vercel (ignore silently if read-only)
+      try {
+        const uploadDir = path.join(process.cwd(), "public", "uploads");
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        fs.writeFileSync(path.join(uploadDir, filename), buffer);
+      } catch {
+        // Read-only filesystem on Vercel lambda - perfectly fine since file is stored in DB
+      }
+
+      const publicUrl = `/api/uploads/${filename}`;
 
       return NextResponse.json({
         url: publicUrl,

@@ -16,7 +16,9 @@ const productSchema = z
     priceUsd: z.number().positive(),
     priceKhr: z.number().positive().optional().nullable(),
     badge: z.string().optional().nullable(),
+    category: z.string().optional().nullable(),
     imageUrl: z.string().optional().nullable(),
+    sortOrder: z.number().int().optional().default(0),
     supplier: z
       .enum(["bay2game", "khmer_topup", "frozenyuki", "soratopup"])
       .default("bay2game"),
@@ -31,6 +33,7 @@ const productSchema = z
     const { supplierProductCode, ...rest } = data;
     return {
       ...rest,
+      category: rest.category?.trim() || "Diamonds",
       supplierCode: code ? code.trim() : null,
     };
   });
@@ -38,12 +41,14 @@ const productSchema = z
 export const GET = withAdminAuth(
   async (req) => {
     const gameId = req.nextUrl.searchParams.get("gameId") || undefined;
+    const category = req.nextUrl.searchParams.get("category") || undefined;
     const activeParam = req.nextUrl.searchParams.get("active");
     const active = activeParam === null ? undefined : activeParam === "true";
 
     const products = await prisma.product.findMany({
       where: {
         ...(gameId ? { gameId } : {}),
+        ...(category ? { category } : {}),
         ...(active !== undefined ? { active } : {}),
       },
       include: {
