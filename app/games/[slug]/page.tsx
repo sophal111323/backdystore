@@ -82,6 +82,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
             uidExample: game.uidExample,
             requiresServer: game.requiresServer,
             servers: (() => { try { return JSON.parse(game.servers || "[]"); } catch { return []; } })(),
+            categoryOrder: (() => { try { return JSON.parse((game as any).categoryOrder || "[]"); } catch { return []; } })(),
           }}
           products={game.products.map((p) => ({
             id: p.id,

@@ -35,6 +35,7 @@ interface Game {
   uidExample: string | null;
   requiresServer: boolean;
   servers: string[];
+  categoryOrder?: string[];
 }
 
 export default function TopUpForm({ game, products }: { game: Game; products: Product[] }) {
@@ -61,7 +62,7 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
   const [dismissed, setDismissed] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(true);
 
-  // Group products by category
+  // Group products by category and sort according to game.categoryOrder (Slot 1, Slot 2, ...)
   const groupedProducts = useMemo(() => {
     const map = new Map<string, Product[]>();
     for (const p of products) {
@@ -71,11 +72,26 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
       }
       map.get(cat)!.push(p);
     }
-    return Array.from(map.entries()).map(([category, items]) => ({
+
+    const catOrder = Array.isArray(game.categoryOrder) ? game.categoryOrder : [];
+    const entries = Array.from(map.entries());
+
+    if (catOrder.length > 0) {
+      entries.sort(([catA], [catB]) => {
+        const indexA = catOrder.indexOf(catA);
+        const indexB = catOrder.indexOf(catB);
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        return 0;
+      });
+    }
+
+    return entries.map(([category, items]) => ({
       category,
       items,
     }));
-  }, [products]);
+  }, [products, game.categoryOrder]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {

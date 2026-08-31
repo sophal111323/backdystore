@@ -31,6 +31,7 @@ const updateSchema = z.object({
   uidExample: z.string().optional().nullable(),
   requiresServer: z.boolean().optional(),
   servers: z.string().optional(),
+  categoryOrder: z.string().optional(),
   featured: z.boolean().optional(),
   active: z.boolean().optional(),
   sortOrder: z.number().int().optional(),

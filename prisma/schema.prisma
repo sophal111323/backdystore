@@ -31,6 +31,7 @@ model Game {
   uidExample     String?
   requiresServer Boolean   @default(false)
   servers        String    @default("[]")
+  categoryOrder  String    @default("[]")
   featured       Boolean   @default(false)
   active         Boolean   @default(true)
   sortOrder      Int       @default(0)

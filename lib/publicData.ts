@@ -169,6 +169,7 @@ const getCachedPublicGameBySlug = unstable_cache(
         uidExample: true,
         requiresServer: true,
         servers: true,
+        categoryOrder: true,
         active: true,
         seoTitle: true,
         seoDescription: true,

@@ -9,6 +9,12 @@ const CATEGORY_PRESETS = [
   "Weekly Membership",
   "3 in 1",
   "Pass",
+  "UC",
+  "WOW Coins",
+  "Level Up",
+  "Special Offer",
+  "Tokens",
+  "Coins",
   "Other",
 ];
 
@@ -90,6 +96,56 @@ export default function AdminProductsPage() {
     return (p.category || "Diamonds") === selectedCategory;
   });
 
+  const currentGame = games.find((g) => g.id === selectedGame) || (games.length === 1 ? games[0] : null);
+
+  const currentGameCategories: string[] = Array.from(
+    new Set<string>(
+      products
+        .filter((p) => !currentGame || p.gameId === currentGame.id)
+        .map((p) => String(p.category || "Diamonds").trim())
+        .filter(Boolean)
+    )
+  );
+
+  let gameSavedOrder: string[] = [];
+  try {
+    if (currentGame?.categoryOrder) {
+      gameSavedOrder = JSON.parse(currentGame.categoryOrder);
+    }
+  } catch {}
+
+  const currentOrderedSlots: string[] = Array.from(
+    new Set<string>([...gameSavedOrder, ...currentGameCategories])
+  ).filter((s) => currentGameCategories.includes(s) || gameSavedOrder.includes(s));
+
+  async function moveSlot(fromIndex: number, direction: "left" | "right") {
+    if (!currentGame) return;
+    const toIndex = direction === "left" ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= currentOrderedSlots.length) return;
+
+    const updated = [...currentOrderedSlots];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+
+    await fetch(`/api/admin/games/${currentGame.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ categoryOrder: JSON.stringify(updated) }),
+    });
+    await loadAll();
+  }
+
+  async function setAsSlot1(slotName: string) {
+    if (!currentGame) return;
+    const updated = [slotName, ...currentOrderedSlots.filter((s) => s !== slotName)];
+    await fetch(`/api/admin/games/${currentGame.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ categoryOrder: JSON.stringify(updated) }),
+    });
+    await loadAll();
+  }
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
@@ -132,9 +188,82 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
+      {/* Category Slot Order Bar */}
+      {currentGame && currentOrderedSlots.length > 0 && (
+        <div className="card p-4 mb-6 border border-pink-500/30 bg-gradient-to-r from-fox-card via-fox-surface/80 to-fox-card">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 className="font-semibold text-sm text-pink-300 flex items-center gap-2">
+                <span>📦</span>
+                <span>Category Slot Order (លំដាប់ Slot កញ្ចប់សម្រាប់ {currentGame.name})</span>
+              </h3>
+              <p className="text-xs text-fox-muted mt-0.5">
+                ចុច ◀ ▶ ដើម្បីផ្លាស់ប្តូរលំដាប់ Slot ឬចុចលើឈ្មោះ Slot ដើម្បីកំណត់ជា <strong className="text-pink-300">Slot 1 (លើគេបង្អស់)</strong>។
+              </p>
+            </div>
+            <span className="text-xs text-fox-muted font-mono px-2 py-0.5 rounded bg-fox-surface border border-fox-border">
+              {currentOrderedSlots.length} Slots
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {currentOrderedSlots.map((slotName, idx) => {
+              const isFirst = idx === 0;
+              return (
+                <div
+                  key={slotName}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition-all ${
+                    isFirst
+                      ? "bg-pink-500/20 border-pink-500 text-pink-200 font-bold ring-2 ring-pink-500/30 shadow-md shadow-pink-500/10"
+                      : "bg-fox-surface border-fox-border text-fox-muted hover:border-pink-400/50"
+                  }`}
+                >
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-extrabold ${
+                      isFirst ? "bg-pink-500 text-white" : "bg-fox-border text-fox-muted"
+                    }`}
+                  >
+                    Slot {idx + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAsSlot1(slotName)}
+                    className={`font-semibold hover:underline text-left ${isFirst ? "text-white" : "text-fox-text"}`}
+                    title={isFirst ? "Active Slot 1" : "Click to set as Slot 1 (លើគេ)"}
+                  >
+                    {slotName}
+                  </button>
+                  <div className="flex items-center gap-0.5 ml-1 border-l border-fox-border/60 pl-1.5">
+                    <button
+                      type="button"
+                      onClick={() => moveSlot(idx, "left")}
+                      disabled={idx === 0}
+                      className="p-0.5 text-fox-muted hover:text-pink-400 disabled:opacity-20 disabled:hover:text-fox-muted transition-colors text-xs"
+                      title="Move Slot ◀ (ឡើងលើ)"
+                    >
+                      ◀
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveSlot(idx, "right")}
+                      disabled={idx === currentOrderedSlots.length - 1}
+                      className="p-0.5 text-fox-muted hover:text-pink-400 disabled:opacity-20 disabled:hover:text-fox-muted transition-colors text-xs"
+                      title="Move Slot ▶ (ចុះក្រោម)"
+                    >
+                      ▶
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {(creating || editing) && (
         <ProductForm
           games={games}
+          products={products}
           defaultGameId={selectedGame}
           initial={editing}
           onCancel={() => { setCreating(false); setEditing(null); }}
@@ -242,7 +371,7 @@ export default function AdminProductsPage() {
   );
 }
 
-function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) {
+function ProductForm({ games, products = [], defaultGameId, initial, onCancel, onSaved }: any) {
   const [form, setForm] = useState({
     gameId: initial?.gameId || defaultGameId || games[0]?.id || "",
     name: initial?.name || "",
@@ -260,6 +389,57 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Custom slots state
+  const [customSlots, setCustomSlots] = useState<string[]>([]);
+  const [newSlotInput, setNewSlotInput] = useState("");
+  const [showAddSlot, setShowAddSlot] = useState(false);
+
+  // Load custom slots from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("dytopup_custom_category_slots");
+      if (saved) setCustomSlots(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  function addCustomSlot(name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    if (!customSlots.includes(trimmed) && !CATEGORY_PRESETS.includes(trimmed)) {
+      const updated = [...customSlots, trimmed];
+      setCustomSlots(updated);
+      try {
+        localStorage.setItem("dytopup_custom_category_slots", JSON.stringify(updated));
+      } catch {}
+    }
+    setForm((prev: any) => ({ ...prev, category: trimmed }));
+    setNewSlotInput("");
+    setShowAddSlot(false);
+  }
+
+  function removeCustomSlot(name: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    const updated = customSlots.filter((s) => s !== name);
+    setCustomSlots(updated);
+    try {
+      localStorage.setItem("dytopup_custom_category_slots", JSON.stringify(updated));
+    } catch {}
+  }
+
+  // Combine default presets + game-specific categories + user custom slots
+  const gameCategories: string[] = Array.from(
+    new Set<string>(
+      products
+        .filter((p: any) => !form.gameId || p.gameId === form.gameId)
+        .map((p: any) => String(p.category || "Diamonds").trim())
+        .filter(Boolean)
+    )
+  );
+
+  const allSlots: string[] = Array.from(
+    new Set<string>([...CATEGORY_PRESETS, ...gameCategories, ...customSlots])
+  );
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -319,32 +499,114 @@ function ProductForm({ games, defaultGameId, initial, onCancel, onSaved }: any) 
           </select>
         </div>
 
-        {/* Category / Package Type */}
+        {/* Category / Package Type Slots */}
         <div className="md:col-span-3">
-          <label className="label">Package Type / Category (ប្រភេទកញ្ចប់)</label>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {CATEGORY_PRESETS.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setForm({ ...form, category: cat })}
-                className={`px-3 py-1 text-xs rounded-full border transition-all ${
-                  form.category === cat
-                    ? "bg-pink-500 text-white font-semibold border-pink-500 shadow-sm"
-                    : "bg-fox-surface text-fox-muted border-fox-border hover:border-pink-400 hover:text-white"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="label mb-0">Package Type / Category Slots (ប្រភេទកញ្ចប់)</label>
+            <button
+              type="button"
+              onClick={() => setShowAddSlot(!showAddSlot)}
+              className="text-xs text-pink-400 hover:text-pink-300 font-semibold flex items-center gap-1 transition-colors"
+            >
+              {showAddSlot ? "✕ Cancel" : "+ Add New Slot (បង្កើត Slot ថ្មី)"}
+            </button>
           </div>
-          <input
-            className="input"
-            placeholder="e.g. Diamonds, Weekly Lite, Weekly Membership, 3 in 1, Pass, Other..."
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-            required
-          />
+
+          {/* Slots List */}
+          <div className="flex flex-wrap items-center gap-2 mb-2.5">
+            {allSlots.map((cat) => {
+              const isSelected = form.category === cat;
+              const isCustom = customSlots.includes(cat);
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setForm({ ...form, category: cat })}
+                  className={`group relative px-3 py-1 text-xs rounded-full border transition-all flex items-center gap-1.5 ${
+                    isSelected
+                      ? "bg-pink-500 text-white font-bold border-pink-500 shadow-md shadow-pink-500/30 ring-2 ring-pink-400/30"
+                      : "bg-fox-surface text-fox-muted border-fox-border hover:border-pink-400 hover:text-white"
+                  }`}
+                >
+                  <span>{cat}</span>
+                  {isCustom && (
+                    <span
+                      onClick={(e) => removeCustomSlot(cat, e)}
+                      className="text-[10px] opacity-60 hover:opacity-100 hover:text-red-300 ml-0.5"
+                      title="Remove custom slot"
+                    >
+                      ✕
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            {!showAddSlot && (
+              <button
+                type="button"
+                onClick={() => setShowAddSlot(true)}
+                className="px-3 py-1 text-xs rounded-full border border-dashed border-pink-400/60 text-pink-400 hover:bg-pink-500/10 transition-colors"
+              >
+                + Add Slot
+              </button>
+            )}
+          </div>
+
+          {/* Add Slot inline input */}
+          {showAddSlot && (
+            <div className="flex items-center gap-2 mb-3 p-2.5 rounded-xl bg-fox-surface border border-pink-500/30">
+              <input
+                type="text"
+                placeholder="Enter new slot name (e.g. Level Up, Tokens, Special Offer)..."
+                value={newSlotInput}
+                onChange={(e) => setNewSlotInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustomSlot(newSlotInput);
+                  }
+                }}
+                className="input text-xs py-1.5 flex-1"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => addCustomSlot(newSlotInput)}
+                className="btn-primary text-xs py-1.5 px-3.5 whitespace-nowrap"
+              >
+                Save Slot
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowAddSlot(false); setNewSlotInput(""); }}
+                className="btn-ghost text-xs py-1.5 px-2 text-fox-muted hover:text-white"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {/* Active Category Input with clear button */}
+          <div className="relative">
+            <input
+              className="input pr-8"
+              placeholder="Select from slots above or type package type here..."
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              required
+            />
+            {form.category && (
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, category: "" })}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-fox-muted hover:text-white text-xs p-1"
+                title="Clear input"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="md:col-span-3">
