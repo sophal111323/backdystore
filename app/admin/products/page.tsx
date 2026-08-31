@@ -82,6 +82,15 @@ export default function AdminProductsPage() {
     await loadAll();
   }
 
+  async function changeProductCategory(productId: string, newCategory: string) {
+    await fetch(`/api/admin/products/${productId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category: newCategory }),
+    });
+    await loadAll();
+  }
+
   // Get distinct categories from loaded products
   const availableCategories = Array.from(
     new Set(
@@ -151,7 +160,7 @@ export default function AdminProductsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="font-display text-3xl font-bold">Products</h1>
-          <p className="text-fox-muted">Top-up packages grouped by type/category for customers.</p>
+          <p className="text-fox-muted">Manage products and customize which Slot they belong to.</p>
         </div>
         <button onClick={() => setCreating(true)} className="btn-primary">+ Add Product</button>
       </div>
@@ -172,13 +181,13 @@ export default function AdminProductsPage() {
         </div>
 
         <div>
-          <label className="label">Filter by Package Type / Category</label>
+          <label className="label">Filter by Package Type / Slot</label>
           <select
             className="input w-full"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
-            <option value="">All Categories ({products.length} products)</option>
+            <option value="">All Slots / Categories ({products.length} products)</option>
             {availableCategories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat} ({products.filter((p) => (p.category || "Diamonds") === cat).length})
@@ -188,14 +197,14 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Category Slot Order Bar */}
+      {/* Category Slot Order Toolbar */}
       {currentGame && currentOrderedSlots.length > 0 && (
         <div className="card p-4 mb-6 border border-pink-500/30 bg-gradient-to-r from-fox-card via-fox-surface/80 to-fox-card">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
             <div>
               <h3 className="font-semibold text-sm text-pink-300 flex items-center gap-2">
                 <span>📦</span>
-                <span>Category Slot Order (លំដាប់ Slot កញ្ចប់សម្រាប់ {currentGame.name})</span>
+                <span>Category Slot Order (លំដាប់ Slot សម្រាប់ {currentGame.name})</span>
               </h3>
               <p className="text-xs text-fox-muted mt-0.5">
                 ចុច ◀ ▶ ដើម្បីផ្លាស់ប្តូរលំដាប់ Slot ឬចុចលើឈ្មោះ Slot ដើម្បីកំណត់ជា <strong className="text-pink-300">Slot 1 (លើគេបង្អស់)</strong>។
@@ -277,7 +286,7 @@ export default function AdminProductsPage() {
             <thead className="bg-fox-surface text-fox-muted text-xs uppercase tracking-wider">
               <tr>
                 <th className="text-left px-5 py-3">Game</th>
-                <th className="text-left px-5 py-3">Category / Type</th>
+                <th className="text-left px-5 py-3">Slot / Category</th>
                 <th className="text-left px-5 py-3">Name</th>
                 <th className="text-right px-5 py-3">Amount</th>
                 <th className="text-right px-5 py-3">Bonus</th>
@@ -300,68 +309,89 @@ export default function AdminProductsPage() {
                     <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 rounded-lg bg-fox-primary px-4 py-2 text-sm font-semibold text-black hover:bg-fox-primary/90 transition-colors">+ Add Product</button>
                 </td></tr>
               ) : (
-                filteredProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-fox-surface/50">
-                    <td className="px-5 py-3 text-fox-muted font-medium">{p.game.name}</td>
-                    <td className="px-5 py-3">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-pink-500/15 text-pink-300 border border-pink-500/30">
-                        {p.category || "Diamonds"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 font-medium">
-                      <div className="flex items-center gap-2">
-                        {p.imageUrl && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={p.imageUrl} alt="" className="h-6 w-6 object-contain rounded shrink-0" />
+                filteredProducts.map((p) => {
+                  const pGame = games.find((g) => g.id === p.gameId);
+                  let pGameSlots: string[] = [];
+                  try {
+                    if (pGame?.categoryOrder) pGameSlots = JSON.parse(pGame.categoryOrder);
+                  } catch {}
+
+                  const allProductSlots = Array.from(
+                    new Set<string>([...pGameSlots, ...currentOrderedSlots, p.category || "Diamonds"])
+                  ).filter(Boolean);
+
+                  return (
+                    <tr key={p.id} className="hover:bg-fox-surface/50">
+                      <td className="px-5 py-3 text-fox-muted font-medium">{p.game.name}</td>
+                      <td className="px-5 py-3">
+                        <select
+                          className="bg-fox-surface border border-pink-500/30 text-pink-300 text-xs rounded-lg px-2.5 py-1 font-semibold hover:border-pink-400 focus:ring-1 focus:ring-pink-400 cursor-pointer"
+                          value={p.category || "Diamonds"}
+                          onChange={(e) => changeProductCategory(p.id, e.target.value)}
+                          title="Change Slot for this product"
+                        >
+                          {allProductSlots.map((cat, sIdx) => (
+                            <option key={cat} value={cat}>
+                              Slot {sIdx + 1}: {cat}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-5 py-3 font-medium">
+                        <div className="flex items-center gap-2">
+                          {p.imageUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={p.imageUrl} alt="" className="h-6 w-6 object-contain rounded shrink-0" />
+                          )}
+                          <span>{p.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-right font-mono">{p.amount.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-right font-mono text-fox-accent">{p.bonus > 0 ? `+${p.bonus}` : "—"}</td>
+                      <td className="px-5 py-3 text-right font-mono text-fox-primary font-bold">${p.priceUsd.toFixed(2)}</td>
+                      <td className="px-5 py-3 text-xs">
+                        {p.badge ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            {p.badge}
+                          </span>
+                        ) : "—"}
+                      </td>
+                      <td className="px-5 py-3 text-xs">
+                        {p.supplier === "khmer_topup" ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            Khmer TopUp
+                          </span>
+                        ) : p.supplier === "frozenyuki" || p.supplier === "soratopup" ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                            FrozenYuki
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                            Bay2Game
+                          </span>
                         )}
-                        <span>{p.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-right font-mono">{p.amount.toLocaleString()}</td>
-                    <td className="px-5 py-3 text-right font-mono text-fox-accent">{p.bonus > 0 ? `+${p.bonus}` : "—"}</td>
-                    <td className="px-5 py-3 text-right font-mono text-fox-primary font-bold">${p.priceUsd.toFixed(2)}</td>
-                    <td className="px-5 py-3 text-xs">
-                      {p.badge ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          {p.badge}
-                        </span>
-                      ) : "—"}
-                    </td>
-                    <td className="px-5 py-3 text-xs">
-                      {p.supplier === "khmer_topup" ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          Khmer TopUp
-                        </span>
-                      ) : p.supplier === "frozenyuki" || p.supplier === "soratopup" ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                          FrozenYuki
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                          Bay2Game
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 text-xs font-mono">
-                      {p.supplierCode ? (
-                        <span className="text-green-400 font-semibold">{p.supplierCode}</span>
-                      ) : (
-                        <span className="text-yellow-400">⚠️ not set</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 text-center">
-                      <button onClick={() => toggleActive(p)}>
-                        <span className={`inline-block h-5 w-9 rounded-full relative transition-colors ${p.active ? "bg-green-500" : "bg-fox-border"}`}>
-                          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${p.active ? "translate-x-4" : "translate-x-0.5"}`} />
-                        </span>
-                      </button>
-                    </td>
-                    <td className="px-5 py-3 text-right space-x-2">
-                      <button onClick={() => setEditing(p)} className="text-fox-accent text-xs hover:underline">Edit</button>
-                      <button onClick={() => deleteProduct(p)} className="text-red-400 text-xs hover:underline">Delete</button>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-5 py-3 text-xs font-mono">
+                        {p.supplierCode ? (
+                          <span className="text-green-400 font-semibold">{p.supplierCode}</span>
+                        ) : (
+                          <span className="text-yellow-400">⚠️ not set</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 text-center">
+                        <button onClick={() => toggleActive(p)}>
+                          <span className={`inline-block h-5 w-9 rounded-full relative transition-colors ${p.active ? "bg-green-500" : "bg-fox-border"}`}>
+                            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${p.active ? "translate-x-4" : "translate-x-0.5"}`} />
+                          </span>
+                        </button>
+                      </td>
+                      <td className="px-5 py-3 text-right space-x-2">
+                        <button onClick={() => setEditing(p)} className="text-fox-accent text-xs hover:underline">Edit</button>
+                        <button onClick={() => deleteProduct(p)} className="text-red-400 text-xs hover:underline">Delete</button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -427,6 +457,14 @@ function ProductForm({ games, products = [], defaultGameId, initial, onCancel, o
     } catch {}
   }
 
+  const selectedGameObj = games.find((g: any) => g.id === form.gameId);
+  let gameOrder: string[] = [];
+  try {
+    if (selectedGameObj?.categoryOrder) {
+      gameOrder = JSON.parse(selectedGameObj.categoryOrder);
+    }
+  } catch {}
+
   // Combine default presets + game-specific categories + user custom slots
   const gameCategories: string[] = Array.from(
     new Set<string>(
@@ -438,7 +476,7 @@ function ProductForm({ games, products = [], defaultGameId, initial, onCancel, o
   );
 
   const allSlots: string[] = Array.from(
-    new Set<string>([...CATEGORY_PRESETS, ...gameCategories, ...customSlots])
+    new Set<string>([...gameOrder, ...gameCategories, ...CATEGORY_PRESETS, ...customSlots])
   );
 
   async function save(e: React.FormEvent) {
@@ -501,20 +539,22 @@ function ProductForm({ games, products = [], defaultGameId, initial, onCancel, o
 
         {/* Category / Package Type Slots */}
         <div className="md:col-span-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="label mb-0">Package Type / Category Slots (ប្រភេទកញ្ចប់)</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="label mb-0 font-bold text-sm text-pink-300">
+              📍 Assign to Slot (កំណត់ចូល Slot ណាមួយ)
+            </label>
             <button
               type="button"
               onClick={() => setShowAddSlot(!showAddSlot)}
               className="text-xs text-pink-400 hover:text-pink-300 font-semibold flex items-center gap-1 transition-colors"
             >
-              {showAddSlot ? "✕ Cancel" : "+ Add New Slot (បង្កើត Slot ថ្មី)"}
+              {showAddSlot ? "✕ Cancel" : "+ Create New Slot (បង្កើត Slot ថ្មី)"}
             </button>
           </div>
 
-          {/* Slots List */}
-          <div className="flex flex-wrap items-center gap-2 mb-2.5">
-            {allSlots.map((cat) => {
+          {/* Quick Slot Selection Buttons */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-3">
+            {allSlots.map((cat, idx) => {
               const isSelected = form.category === cat;
               const isCustom = customSlots.includes(cat);
               return (
@@ -522,35 +562,37 @@ function ProductForm({ games, products = [], defaultGameId, initial, onCancel, o
                   key={cat}
                   type="button"
                   onClick={() => setForm({ ...form, category: cat })}
-                  className={`group relative px-3 py-1 text-xs rounded-full border transition-all flex items-center gap-1.5 ${
+                  className={`flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${
                     isSelected
-                      ? "bg-pink-500 text-white font-bold border-pink-500 shadow-md shadow-pink-500/30 ring-2 ring-pink-400/30"
-                      : "bg-fox-surface text-fox-muted border-fox-border hover:border-pink-400 hover:text-white"
+                      ? "bg-pink-500/20 border-pink-500 ring-2 ring-pink-500/40 shadow-md shadow-pink-500/20 text-white font-bold"
+                      : "bg-fox-surface border-fox-border text-fox-muted hover:border-pink-400 hover:text-white"
                   }`}
                 >
-                  <span>{cat}</span>
-                  {isCustom && (
+                  <div className="flex items-center gap-2 min-w-0">
                     <span
-                      onClick={(e) => removeCustomSlot(cat, e)}
-                      className="text-[10px] opacity-60 hover:opacity-100 hover:text-red-300 ml-0.5"
-                      title="Remove custom slot"
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-extrabold shrink-0 ${
+                        isSelected ? "bg-pink-500 text-white" : "bg-fox-border text-fox-muted"
+                      }`}
                     >
-                      ✕
+                      Slot {idx + 1}
                     </span>
-                  )}
+                    <span className="text-xs truncate">{cat}</span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isSelected && <span className="text-pink-400 text-xs font-bold">✓</span>}
+                    {isCustom && (
+                      <span
+                        onClick={(e) => removeCustomSlot(cat, e)}
+                        className="text-[10px] opacity-60 hover:opacity-100 hover:text-red-300 ml-1"
+                        title="Remove custom slot"
+                      >
+                        ✕
+                      </span>
+                    )}
+                  </div>
                 </button>
               );
             })}
-
-            {!showAddSlot && (
-              <button
-                type="button"
-                onClick={() => setShowAddSlot(true)}
-                className="px-3 py-1 text-xs rounded-full border border-dashed border-pink-400/60 text-pink-400 hover:bg-pink-500/10 transition-colors"
-              >
-                + Add Slot
-              </button>
-            )}
           </div>
 
           {/* Add Slot inline input */}
@@ -590,8 +632,8 @@ function ProductForm({ games, products = [], defaultGameId, initial, onCancel, o
           {/* Active Category Input with clear button */}
           <div className="relative">
             <input
-              className="input pr-8"
-              placeholder="Select from slots above or type package type here..."
+              className="input pr-8 text-sm"
+              placeholder="Or type custom slot / category name here..."
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
               required
