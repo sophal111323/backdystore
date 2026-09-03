@@ -291,58 +291,36 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
 
           {/* Step 1 */}
           <div className="fade-up">
-            <div className="flex items-center gap-2.5 mb-2.5">
-              <div className="relative flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs sm:text-sm font-extrabold text-white shadow-md shadow-pink-300/40" style={{background:"linear-gradient(135deg,#E91E8C,#FF6EB4)"}}>
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-full text-sm font-extrabold text-white shadow-md shadow-pink-300/40" style={{background:"linear-gradient(135deg,#E91E8C,#FF6EB4)"}}>
                 <span className="absolute inset-0 rounded-full bg-pink-500/40 animate-ping" />
                 <span className="relative">1</span>
               </div>
-              <h2 className="font-display text-base sm:text-lg font-extrabold text-pink-800">បញ្ចូលព័ត៌មានគណនី</h2>
+              <h2 className="font-display text-lg font-extrabold text-pink-800">បញ្ចូលព័ត៌មានគណនី</h2>
             </div>
 
-            <div className="card p-3 sm:p-4 space-y-2.5">
-              <div className={useZoneField ? "grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_130px] gap-2.5" : ""}>
+            <div className="card p-3.5 sm:p-4 space-y-3">
+              <div className={useZoneField ? "grid grid-cols-[1fr_110px] sm:grid-cols-[1fr_130px] gap-3" : ""}>
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="label text-xs sm:text-sm mb-0">
-                      {useZoneField ? "User ID" : game.uidLabel}
-                    </label>
-                    {!uid && game.uidExample && !useZoneField && (
-                      <span className="text-[11px] text-pink-500 font-medium">
-                        ឧទាហរណ៍: <span className="font-mono text-pink-700 font-bold">{game.uidExample}</span>
-                      </span>
-                    )}
-                  </div>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={uid}
-                      onChange={(e) => { setUid(e.target.value); resetLookup(); }}
-                      placeholder={useZoneField ? "12345678" : (game.uidExample || "Enter your player ID")}
-                      className={`input font-mono text-sm sm:text-base py-2 sm:py-2.5 ${supportsLookup && !useZoneField ? "pr-28 sm:pr-32" : ""}`}
-                      required
-                    />
-                    {supportsLookup && !useZoneField && (
-                      <button
-                        type="button"
-                        onClick={handleCheckNickname}
-                        disabled={
-                          !isValidUid(uid) ||
-                          nicknameStatus === "checking"
-                        }
-                        className="absolute right-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs font-bold rounded-xl border border-pink-300 bg-pink-50 text-pink-700 hover:bg-pink-500 hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
-                      >
-                        {nicknameStatus === "checking" ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2} />
-                        ) : (
-                          <Search className="h-3.5 w-3.5" strokeWidth={2} />
-                        )}
-                        <span>{nicknameStatus === "checking" ? "កំពុងពិនិត្យ…" : "ពិនិត្យឈ្មោះ"}</span>
-                      </button>
-                    )}
-                  </div>
+                  <label className="label text-xs sm:text-sm mb-1">
+                    {useZoneField ? "User ID" : game.uidLabel}
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={uid}
+                    onChange={(e) => { setUid(e.target.value); resetLookup(); }}
+                    placeholder={useZoneField ? "12345678" : (game.uidExample || "Enter your player ID")}
+                    className="input font-mono text-sm sm:text-base py-2.5"
+                    required
+                  />
+                  {!uid && game.uidExample && !useZoneField && (
+                    <p className="text-xs text-pink-500 mt-1">
+                      ឧទាហរណ៍: <span className="font-mono text-pink-800/70">{game.uidExample}</span>
+                    </p>
+                  )}
                   {uid && !isValidUid(uid) && (
-                    <p className="text-[11px] text-red-500 mt-1">ID គួរតែ 6-20 ខ្ទង់</p>
+                    <p className="text-xs text-red-500 mt-1">IDគួរតែ6-20ខ្ទង់</p>
                   )}
                 </div>
                 {useZoneField && (
@@ -354,7 +332,7 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                       value={serverId}
                       onChange={(e) => setServerId(e.target.value)}
                       placeholder="1234"
-                      className="input font-mono text-sm sm:text-base py-2 sm:py-2.5"
+                      className="input font-mono text-sm sm:text-base py-2.5"
                       required
                     />
                   </div>
@@ -377,18 +355,17 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                 </div>
               )}
 
-              {/* For multi-field games like MLBB (User ID + Zone ID), lookup button stays directly below */}
-              {supportsLookup && useZoneField && (
-                <div className="pt-0.5 flex flex-wrap items-center gap-2">
+              {supportsLookup && (
+                <div className="pt-0.5 flex flex-col gap-2">
                   <button
                     type="button"
                     onClick={handleCheckNickname}
                     disabled={
                       !isValidUid(uid) ||
-                      serverId.trim().length === 0 ||
+                      (useZoneField && serverId.trim().length === 0) ||
                       nicknameStatus === "checking"
                     }
-                    className="btn-ghost !text-xs !py-1.5 !px-3 inline-flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="btn-ghost text-xs py-1.5 px-3.5 inline-flex items-center gap-1.5 self-start disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {nicknameStatus === "checking" ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2} />
@@ -397,21 +374,20 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                     )}
                     {nicknameStatus === "checking" ? "កំពុងពិនិត្យ…" : "ពិនិត្យមើលឈ្មោះ"}
                   </button>
-                </div>
-              )}
 
-              {/* Status display (compact badge) */}
-              {nicknameStatus === "verified" && nickname && (
-                <div className="inline-flex items-center gap-2 rounded-lg border border-green-500/50 bg-green-50 px-2.5 py-1 text-xs text-green-700 animate-scale-in">
-                  <UserRoundCheck className="h-3.5 w-3.5 text-green-600 shrink-0" strokeWidth={2} />
-                  <span className="text-pink-500 font-medium">Player:</span>
-                  <span className="font-bold text-green-800">{nickname}</span>
-                </div>
-              )}
-              {nicknameStatus === "not_found" && (
-                <div className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-2.5 py-1 text-xs text-red-600">
-                  <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-                  គណនីរកមិនឃើញ — សូមពិនិត្យ ID ម្តងទៀត
+                  {nicknameStatus === "verified" && nickname && (
+                    <span className="inline-flex items-center gap-2 rounded-lg border border-green-600 bg-green-100 px-3 py-1.5 text-xs text-green-600 animate-scale-in self-start">
+                      <UserRoundCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                      <span className="text-pink-500">Player:</span>
+                      <span className="font-semibold text-green-700">{nickname}</span>
+                    </span>
+                  )}
+                  {nicknameStatus === "not_found" && (
+                    <span className="inline-flex items-center gap-2 rounded-lg border border-red-500 bg-red-50 px-3 py-1.5 text-xs text-red-600 self-start">
+                      <AlertCircle className="h-3.5 w-3.5" strokeWidth={2} />
+                      គណនីរកមិនឃើញ — សូមពិនិត្យ ID ម្តងទៀត
+                    </span>
+                  )}
                 </div>
               )}
             </div>

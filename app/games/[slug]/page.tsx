@@ -32,18 +32,18 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         />
         <div className="absolute inset-0 bg-gradient-to-t from-fox-bg via-fox-bg/90 to-fox-bg/70" />
 
-        <div className="relative mx-auto max-w-6xl px-4 py-8 sm:py-12 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-6xl px-4 pt-4 pb-3 sm:pt-6 sm:pb-5 sm:px-6 lg:px-8">
           <Link
             href="/#games"
-            className="inline-flex items-center gap-2 text-sm text-fox-muted hover:text-fox-primary transition-colors mb-4 sm:mb-6"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm text-fox-muted hover:text-fox-primary transition-colors mb-2 sm:mb-3"
           >
-            <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+            <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2} />
             All games
           </Link>
 
-          <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-3.5 sm:gap-6">
             <div
-              className="h-20 w-20 sm:h-28 sm:w-28 rounded-2xl border-2 border-fox-border bg-fox-card shadow-xl shrink-0 overflow-hidden"
+              className="h-16 w-16 sm:h-24 sm:w-24 rounded-2xl border-2 border-fox-border bg-fox-card shadow-xl shrink-0 overflow-hidden"
               style={{
                 backgroundImage: `url(${game.imageUrl})`,
                 backgroundSize: "cover",
@@ -51,13 +51,13 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
               }}
             />
             <div>
-              <p className="text-[10px] sm:text-xs uppercase tracking-widest text-fox-muted mb-1">
+              <p className="text-[10px] sm:text-xs uppercase tracking-widest text-fox-muted mb-0.5">
                 {game.publisher}
               </p>
-              <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-1 sm:mb-2">
+              <h1 className="font-display text-xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-1">
                 {game.name}
               </h1>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 <p className="text-fox-accent text-xs sm:text-sm">
                   Top up {game.currencyName}
                 </p>
@@ -71,7 +71,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:py-12 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-6xl px-4 pt-3 pb-8 sm:pt-5 sm:pb-12 sm:px-6 lg:px-8">
         <TopUpForm
           game={{
             id: game.id,
