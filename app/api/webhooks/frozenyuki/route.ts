@@ -15,7 +15,11 @@
 //   }
 //
 // Security:
+//   - FAIL-CLOSED in production: without a configured signing secret the
+//     webhook is rejected (403) — an unauthenticated "Success" payload must
+//     never be able to mark an order DELIVERED.
 //   - Verifies X-FrozenYuki-Signature header (HMAC-SHA256 of raw body)
+//   - Optional IP allowlist: FROZENYUKI_WEBHOOK_ALLOWED_IPS (IPs / IPv4 CIDRs)
 //   - Idempotent: safe against duplicate deliveries
 //   - Updates order to DELIVERED atomically upon Success
 
@@ -25,6 +29,7 @@ import { prisma } from "@/lib/prisma";
 import { normalizeFrozenYukiStatus } from "@/lib/topup/providers/frozenyuki";
 import { notifyTelegram, escapeHtml } from "@/lib/telegram";
 import { getClientIp } from "@/lib/getIp";
+import { isIpAllowedByEnv } from "@/lib/ipAllowlist";
 import { logSecurityEvent } from "@/lib/secureLogger";
 import { publicRateLimit } from "@/lib/apiSecurity";
 
@@ -56,6 +61,38 @@ export async function POST(req: NextRequest) {
     cleanEnv(process.env.FROZENYUKI_WEBHOOK_SECRET) ||
     cleanEnv(process.env.SORATOPUP_WEBHOOK_SECRET);
 
+  // 0a. Optional IP allowlist — rejects non-gateway senders early. When
+  //     unset, any IP may attempt delivery and MUST still pass the HMAC
+  //     signature check below.
+  const ipGuard = isIpAllowedByEnv(
+    getClientIp(req),
+    process.env.FROZENYUKI_WEBHOOK_ALLOWED_IPS
+  );
+  if (!ipGuard.allowed) {
+    logSecurityEvent({
+      event: "webhook_ip_blocked",
+      detail: "FrozenYuki webhook from non-allowlisted IP",
+      ip: getClientIp(req),
+    });
+    return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  }
+
+  // 0b. FAIL-CLOSED (production): without a signing secret we cannot
+  //     authenticate the sender at all — reject instead of trusting an
+  //     unsigned payload that could forge a "Success" delivery.
+  if (!webhookSecret && process.env.NODE_ENV === "production") {
+    logSecurityEvent({
+      event: "webhook_secret_missing",
+      detail:
+        "FrozenYuki webhook secret not configured — rejecting (fail-closed)",
+      ip: getClientIp(req),
+    });
+    return NextResponse.json(
+      { ok: false, error: "Webhook not configured" },
+      { status: 403 }
+    );
+  }
+
   // 1. Signature validation (if secret is configured)
   if (webhookSecret) {
     const rawSig =
@@ -85,6 +122,12 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
+  } else if (process.env.NODE_ENV !== "production") {
+    // Non-production convenience only: local flows keep working without
+    // provider credentials. Production is fail-closed (see 0b above).
+    console.warn(
+      "[frozenyuki-webhook] No secret configured — accepting unsigned webhook (non-production only)."
+    );
   }
 
   // 2. Parse payload safely

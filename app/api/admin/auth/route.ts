@@ -18,11 +18,18 @@ export const runtime = "nodejs";
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
-  turnstileToken: z.string().optional(),
+  turnstileToken: z.string().min(1),
 });
 
 const PENDING_2FA_COOKIE = "admin_2fa_pending";
 const DEFAULT_2FA_TTL_SECONDS = 5 * 60;
+
+// Signed httpOnly cookie that binds login-lock visibility to the browser that
+// actually experienced a failed login attempt. GET /api/admin/auth reveals lock
+// state only for the identifier stored in this cookie — never from the query
+// string — so arbitrary emails cannot be probed by third parties.
+const LOCK_HINT_COOKIE = "admin_lock_ref";
+const LOCK_HINT_TTL_SECONDS = 60 * 60; // ~1 hour
 
 function getAdminJwtSecret() {
   const secret = process.env.ADMIN_JWT_SECRET;
@@ -42,19 +49,91 @@ function get2FATtlSeconds() {
   return Math.floor(ttl);
 }
 
-// ── GET: check login lock status ─────────────────────────────────────────────
-export async function GET(req: NextRequest) {
-  try {
-    const email = req.nextUrl.searchParams.get("email");
+function signLockHintToken(identifier: string) {
+  return jwt.sign(
+    { type: "admin-lock-hint", identifier },
+    getAdminJwtSecret(),
+    { expiresIn: LOCK_HINT_TTL_SECONDS }
+  );
+}
 
-    if (!email) {
+function verifyLockHintToken(token: string): string | null {
+  try {
+    const payload = jwt.verify(token, getAdminJwtSecret()) as {
+      type?: unknown;
+      identifier?: unknown;
+    };
+
+    if (
+      payload &&
+      payload.type === "admin-lock-hint" &&
+      typeof payload.identifier === "string" &&
+      payload.identifier.length > 0
+    ) {
+      return payload.identifier;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Only the browser that just failed a login attempt may later read that
+ * lock's status via GET. Called exclusively from lock-active branches of POST.
+ */
+function setLockHintCookie(
+  res: NextResponse,
+  identifier: string
+) {
+  res.cookies.set(LOCK_HINT_COOKIE, signLockHintToken(identifier), {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+    maxAge: LOCK_HINT_TTL_SECONDS,
+  });
+}
+
+function clearLockHintCookie(res: NextResponse) {
+  res.cookies.set(LOCK_HINT_COOKIE, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  });
+}
+
+// ── GET: check login lock status (bound to the admin_lock_ref cookie) ────────
+export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+
+  try {
+    // Rate limit: 20 requests per IP per 15 minutes (defense in depth)
+    const rl = await applyRateLimit(
+      `admin-lock-status:${ip}`,
+      20,
+      15 * 60 * 1000,
+      ip
+    );
+
+    if (rl) return rl;
+
+    // Lock status is revealed only for the identifier bound to this browser
+    // by the signed httpOnly admin_lock_ref cookie — never from the query
+    // string. Missing/invalid cookie → { locked: false }, no DB call.
+    const hintToken = req.cookies.get(LOCK_HINT_COOKIE)?.value;
+    const identifier = hintToken ? verifyLockHintToken(hintToken) : null;
+
+    if (!identifier) {
       return NextResponse.json(
         { locked: false },
         { headers: { "Cache-Control": "no-store" } }
       );
     }
-
-    const identifier = `admin-login:${email.toLowerCase().trim()}`;
 
     const lock = await prisma.adminAuthLock.findUnique({
       where: { identifier },
@@ -102,6 +181,7 @@ export async function GET(req: NextRequest) {
 // ── POST: password login → issues pending-2FA cookie ─────────────────────────
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
+  const isProduction = process.env.NODE_ENV === "production";
 
   try {
     // Rate limit: 10 attempts per IP per 15 minutes
@@ -127,7 +207,7 @@ export async function POST(req: NextRequest) {
     // 🛡️ Cloudflare Turnstile Bot Protection for Admin Login
     const isBotChallengePassed = await verifyTurnstileToken({
       req,
-      token: parsed.data.turnstileToken || "",
+      token: parsed.data.turnstileToken,
       kind: "admin",
       expectedAction: "admin_login",
     });
@@ -148,16 +228,19 @@ export async function POST(req: NextRequest) {
 
     // Backward-compat: respect legacy forever locks already in DB.
     if (lock?.forever) {
-      return NextResponse.json(
+      const res = NextResponse.json(
         { error: "Account is disabled. Contact the site owner." },
         { status: 403, headers: { "Cache-Control": "no-store" } }
       );
+
+      setLockHintCookie(res, identifier);
+      return res;
     }
 
     if (lock?.lockedUntil && lock.lockedUntil > new Date()) {
       const remainingMs = lock.lockedUntil.getTime() - Date.now();
 
-      return NextResponse.json(
+      const res = NextResponse.json(
         {
           error: `Too many failed attempts. Please try again in ${formatLockDuration(
             remainingMs
@@ -167,6 +250,9 @@ export async function POST(req: NextRequest) {
         },
         { status: 429, headers: { "Cache-Control": "no-store" } }
       );
+
+      setLockHintCookie(res, identifier);
+      return res;
     }
 
     const admin = await prisma.admin.findUnique({
@@ -194,7 +280,7 @@ export async function POST(req: NextRequest) {
 
       if (result.isLocked && result.lockedUntil) {
         const remainingMs = result.lockedUntil.getTime() - Date.now();
-        return NextResponse.json(
+        const res = NextResponse.json(
           {
             error: `Password មិនត្រឹមត្រូវ។ គណនីត្រូវ lock រយៈពេល ${formatLockDuration(remainingMs)}។`,
             lockedUntil: result.lockedUntil,
@@ -203,6 +289,9 @@ export async function POST(req: NextRequest) {
           },
           { status: 429, headers: { "Cache-Control": "no-store" } }
         );
+
+        setLockHintCookie(res, identifier);
+        return res;
       }
 
       const remainingAttempts = Math.max(0, 3 - result.failCount);
@@ -227,8 +316,6 @@ export async function POST(req: NextRequest) {
       ip,
       detail: email,
     });
-
-    const isProduction = process.env.NODE_ENV === "production";
 
     // If 2FA (totpSecret) is configured, proceed to 2FA step
     if (admin.totpSecret) {
@@ -255,11 +342,14 @@ export async function POST(req: NextRequest) {
 
       res.cookies.set(PENDING_2FA_COOKIE, pendingToken, {
         httpOnly: true,
-        secure: isProduction,
+        secure: true,
         sameSite: "strict",
         path: "/",
         maxAge: ttlSeconds,
       });
+
+      // ✅ Password step succeeded — drop any stale lock hint.
+      clearLockHintCookie(res);
 
       return res;
     }
@@ -287,7 +377,7 @@ export async function POST(req: NextRequest) {
 
     res.cookies.set(ADMIN_COOKIE_NAME, sessionToken, {
       httpOnly: true,
-      secure: isProduction,
+      secure: true,
       sameSite: "strict",
       path: "/",
       maxAge: 7 * 24 * 60 * 60,
@@ -295,11 +385,14 @@ export async function POST(req: NextRequest) {
 
     res.cookies.set(PENDING_2FA_COOKIE, "", {
       httpOnly: true,
-      secure: isProduction,
+      secure: true,
       sameSite: "strict",
       path: "/",
       maxAge: 0,
     });
+
+    // ✅ Login succeeded — drop any stale lock hint.
+    clearLockHintCookie(res);
 
     return res;
   } catch (error) {
@@ -311,8 +404,6 @@ export async function POST(req: NextRequest) {
 
 // ── DELETE: logout — clear both session cookies ───────────────────────────────
 export async function DELETE() {
-  const isProduction = process.env.NODE_ENV === "production";
-
   const res = NextResponse.json(
     { ok: true },
     { headers: { "Cache-Control": "no-store" } }
@@ -320,7 +411,7 @@ export async function DELETE() {
 
   const cookieOpts = {
     httpOnly: true,
-    secure: isProduction,
+    secure: true,
     sameSite: "strict" as const,
     path: "/",
     maxAge: 0,
@@ -329,6 +420,7 @@ export async function DELETE() {
 
   res.cookies.set(ADMIN_COOKIE_NAME, "", cookieOpts);
   res.cookies.set(PENDING_2FA_COOKIE, "", cookieOpts);
+  res.cookies.set(LOCK_HINT_COOKIE, "", cookieOpts);
 
   return res;
 }

@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
   const cookieOpts = {
     httpOnly: true,
-    secure: isProduction,
+    secure: true,
     sameSite: "strict" as const,
     path: "/",
     maxAge: 0,

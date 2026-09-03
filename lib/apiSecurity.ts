@@ -21,8 +21,13 @@ export function addApiSecurityHeaders(
   }
 
   response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
   response.headers.set("X-Robots-Tag", "noindex, nofollow");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.delete("x-powered-by");
+  response.headers.delete("X-Powered-By");
+  response.headers.set("Server", "web");
 
   return response;
 }

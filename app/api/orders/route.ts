@@ -11,6 +11,34 @@ import { verifyTurnstileToken } from "@/lib/turnstile";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+/** Parse a positive integer env var with clamped bounds and a safe default. */
+function envInt(
+  name: string,
+  fallback: number,
+  min: number,
+  max: number
+): number {
+  const raw = (process.env[name] || "").trim();
+  if (!raw) return fallback;
+
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
+    return fallback;
+  }
+  return parsed;
+}
+
+// Order-creation rate limit (Issue #4) — env-tunable, defaults unchanged:
+// 10 orders per IP per 10 minutes. Hard bounds prevent foot-guns
+// (e.g. unlimited orders or a sub-second window).
+const ORDER_RATE_LIMIT_MAX = envInt("ORDER_RATE_LIMIT_MAX", 10, 1, 1000);
+const ORDER_RATE_LIMIT_WINDOW_MS = envInt(
+  "ORDER_RATE_LIMIT_WINDOW_MS",
+  10 * 60 * 1000,
+  1_000,
+  24 * 60 * 60 * 1000
+);
+
 const createOrderSchema = z.object({
   gameId: z.string().min(1),
   productId: z.string().min(1),
@@ -21,14 +49,28 @@ const createOrderSchema = z.object({
   paymentMethod: z.enum(["TOLASAINT", "ABA", "ACLEDA", "WING"]),
   promoCode: z.string().optional(),
   playerNickname: z.string().max(100).optional(),
-  turnstileToken: z.string().optional(),
+  turnstileToken: z.string().min(1),
 });
 
 export async function POST(req: NextRequest) {
 
-  // Rate limit: 10 orders per IP per 10 minutes (Issue #4)
+  // ── Rate limit: tunable per-IP order creation limit (Issue #4) ─────────
+  // Defaults preserve the historical 10 orders / 10 minutes / IP.
+  // Full guest-checkout auth stack for POST /api/orders (no user accounts
+  // by design — orders are placed as guests):
+  //   1. middleware origin guard (browser callers must be same-origin or
+  //      explicitly allowlisted via API_ALLOWED_ORIGINS),
+  //   2. Cloudflare Turnstile (verifyTurnstileToken below),
+  //   3. this DB-backed per-IP rate limit (survives restarts & multi-instance),
+  //   4. zod validation + banlist checks.
+  // Admin order access uses GET /api/orders (withAdminAuth).
   const ip = getClientIp(req);
-  const rl = await applyRateLimit(`orders:${ip}`, 10, 10 * 60 * 1000, ip);
+  const rl = await applyRateLimit(
+    `orders:${ip}`,
+    ORDER_RATE_LIMIT_MAX,
+    ORDER_RATE_LIMIT_WINDOW_MS,
+    ip
+  );
   if (rl) return rl;
 
   try {
@@ -46,7 +88,7 @@ export async function POST(req: NextRequest) {
     // Verify token BEFORE executing any database queries or external banking API calls
     const isBotChallengePassed = await verifyTurnstileToken({
       req,
-      token: data.turnstileToken || "",
+      token: data.turnstileToken,
       kind: "public",
       expectedAction: "create_order",
     });

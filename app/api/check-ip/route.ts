@@ -19,7 +19,6 @@ export async function GET() {
       outbound_ip: data.ip,
       message: "This is the outbound IP that Tola Saint sees when your server makes requests.",
       fixie_enabled: !!process.env.FIXIE_URL,
-      timestamp: new Date().toISOString(),
     });
   } catch (err) {
     return NextResponse.json(

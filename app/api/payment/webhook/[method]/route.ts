@@ -9,6 +9,7 @@ import type { PaymentMethod } from "@/lib/payment";
 import { NextRequest, NextResponse } from "next/server";
 import { logSecurityEvent } from "@/lib/secureLogger";
 import { getClientIp } from "@/lib/getIp";
+import { isIpAllowedByEnv } from "@/lib/ipAllowlist";
 import {
   logPaymentValidationFailure,
   validatePaymentForOrder,
@@ -38,6 +39,8 @@ function isPrismaUniqueError(error: unknown): boolean {
  *   must be idempotent (ProcessedWebhookEvent).
  *
  * Security rules enforced here:
+ * 0. Optional IP allowlist (TOLA_SAINT_WEBHOOK_ALLOWED_IPS) rejects
+ *    non-gateway senders before any parsing work happens.
  * 1. RAW body is read first and used for signature verification.
  * 2. Invalid signatures are rejected with 401 - never bypassed by simulation
  *    mode or any other flag.
@@ -63,6 +66,22 @@ export async function POST(
       windowMs: 60_000,
     });
     if (limited) return limited;
+
+    // 0b. Optional IP allowlist — belt-and-suspenders on top of the
+    //     mandatory HMAC below. Unset = any IP may attempt (the HMAC
+    //     decides); set = only gateway IPs/CIDRs may deliver webhooks.
+    const ipGuard = isIpAllowedByEnv(
+      getClientIp(req),
+      process.env.TOLA_SAINT_WEBHOOK_ALLOWED_IPS
+    );
+    if (!ipGuard.allowed) {
+      logSecurityEvent({
+        event: "webhook_ip_blocked",
+        detail: `Tola Saint webhook from non-allowlisted IP (${method})`,
+        ip: getClientIp(req),
+      });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     // 1. RAW request body - required for exact HMAC verification.
     const rawBody = await req.text();

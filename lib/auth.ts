@@ -43,33 +43,25 @@ export function verifyAdminToken(token: string) {
 }
 
 export function buildAuthCookie(token: string) {
-  const isProduction = process.env.NODE_ENV === "production";
-
   return [
     `${ADMIN_COOKIE_NAME}=${token}`,
     "Path=/",
     "HttpOnly",
     "SameSite=Strict",
     `Max-Age=${SESSION_MAX_AGE_SECONDS}`,
-    isProduction ? "Secure" : "",
-  ]
-    .filter(Boolean)
-    .join("; ");
+    "Secure",
+  ].join("; ");
 }
 
 export function buildClearCookie() {
-  const isProduction = process.env.NODE_ENV === "production";
-
   return [
     `${ADMIN_COOKIE_NAME}=`,
     "Path=/",
     "HttpOnly",
     "SameSite=Strict",
     "Max-Age=0",
-    isProduction ? "Secure" : "",
-  ]
-    .filter(Boolean)
-    .join("; ");
+    "Secure",
+  ].join("; ");
 }
 
 /**

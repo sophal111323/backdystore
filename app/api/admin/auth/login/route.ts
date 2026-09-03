@@ -22,6 +22,16 @@ const loginSchema = z.object({
 const DUMMY_HASH =
   "$2a$10$CwTycUXWue0Thq9StjUM0uJ8qqYv1.F9s7EuZWmhDgL4P4YJb3R1W";
 
+/**
+ * Flutter (native) admin login. The browser Turnstile challenge used by the
+ * web login (POST /api/admin/auth) cannot be rendered inside the native app,
+ * and the API must stay backward compatible with the shipped Flutter client,
+ * so bot defense here relies on compensating controls: strict per-IP rate
+ * limiting, the shared `admin-login:<email>` lockout (same identifier as the
+ * web login), constant-time bcrypt comparison against a dummy hash for
+ * unknown emails, and mandatory TOTP 2FA before any session is issued.
+ * Every attempt is audit-logged. Do not remove or weaken these controls.
+ */
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
 

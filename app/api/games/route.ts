@@ -7,54 +7,30 @@ import {
   safeJson,
 } from "@/lib/apiSecurity";
 
+import { NextResponse } from "next/server";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 /**
- * PUBLIC read-only games list for the customer mobile app / website.
- * Returns a bare JSON array (backward-compatible with existing clients).
- * Only customer-safe display fields are selected via an explicit allowlist.
- * Full admin data stays under /api/admin/games (admin auth required).
+ * Hide /api/games from public direct access:
+ * - If opened in a browser URL bar, immediately redirect to the homepage (/).
+ * - For direct API probes or scanners, return 404 Not Found so game list is never exposed.
+ * The website UI does NOT break because Next.js loads games server-side directly via lib/publicData.ts.
  */
 export async function GET(req: NextRequest) {
-  const suspicious = rejectSuspiciousQuery(req);
-  if (suspicious) return suspicious;
+  const accept = req.headers.get("accept") || "";
+  const fetchDest = req.headers.get("sec-fetch-dest");
 
-  const limited = publicRateLimit(req, "api-games", {
-    limit: 120,
-    windowMs: 60_000,
-  });
-  if (limited) return limited;
-
-  try {
-    const games = await prisma.game.findMany({
-      where: { active: true },
-      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        publisher: true,
-        description: true,
-        imageUrl: true,
-        bannerUrl: true,
-        currencyName: true,
-        uidLabel: true,
-        uidExample: true,
-        requiresServer: true,
-        servers: true,
-        featured: true,
-        sortOrder: true,
-      },
-    });
-
-    return safeJson(games, undefined, API_NO_STORE);
-  } catch (error) {
-    console.error("[GAMES_API_ERROR]", error);
-    return safeJson(
-      { error: "Internal server error" },
-      { status: 500 },
-      API_NO_STORE
-    );
+  // If a user types localhost:3000/api/games in Chrome, redirect to homepage immediately!
+  if (fetchDest === "document" || accept.includes("text/html")) {
+    return NextResponse.redirect(new URL("/", req.url));
   }
+
+  // Hide the endpoint from public API scanners with 404 Not Found
+  return safeJson(
+    { error: "Not found" },
+    { status: 404 },
+    API_NO_STORE
+  );
 }

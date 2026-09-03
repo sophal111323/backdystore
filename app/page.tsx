@@ -81,7 +81,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
           {games.map((game, i) => (
             <div
-              key={game.id}
+              key={game.slug}
               className="fade-up"
               style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
             >

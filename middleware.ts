@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { isOriginAllowedForApi } from "@/lib/originGuard";
+import { logSecurityEvent } from "@/lib/secureLogger";
 
 const SESSION_COOKIE = "admin_token";
 
@@ -119,6 +121,25 @@ function shouldTrackRequest(pathname: string): boolean {
   return true;
 }
 
+// ── API origin guard exemptions ──────────────────────────────────────────
+// These endpoints authenticate via HMAC signatures or shared secrets
+// (not browser origins), so the origin guard must never apply to them.
+const ORIGIN_GUARD_EXEMPT_PREFIXES = [
+  "/api/payment/webhook/", // Tola Saint webhook — HMAC-SHA256 signed
+  "/api/webhooks/", // FrozenYuki webhook — HMAC-SHA256 signed
+  "/api/cron/", // Vercel cron — CRON_SECRET gated
+  "/api/security/track", // middleware's own internal fetch — INTERNAL_SECURITY_SECRET gated
+  "/api/health", // uptime monitors
+  "/api/check-ip", // admin-gated diagnostic (Flutter admin calls)
+  "/api/public/", // public metadata (app version) — Flutter apps
+];
+
+function isOriginGuardExempt(pathname: string): boolean {
+  return ORIGIN_GUARD_EXEMPT_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(p)
+  );
+}
+
 async function trackRequest(req: NextRequest, pathname: string) {
   try {
     const userAgent = req.headers.get("user-agent") || "";
@@ -154,57 +175,63 @@ function generateNonce(): string {
   );
 }
 
-function buildCspHeader(nonce: string, isProduction: boolean): string {
+function buildCspHeader(nonce: string): string {
   const turnstile = "https://challenges.cloudflare.com";
+  const isDev = process.env.NODE_ENV === "development";
 
-  const scriptSrc = isProduction
-    ? `'self' 'nonce-${nonce}' ${turnstile}`
-    : `'self' 'unsafe-inline' 'unsafe-eval' ${turnstile}`;
+  // Strict script-src: nonce-based, conditionally include 'unsafe-eval' ONLY in development
+  // for React Fast Refresh / HMR, strictly removed in production.
+  const scriptSrc = isDev
+    ? `'self' 'nonce-${nonce}' 'unsafe-eval' ${turnstile}`
+    : `'self' 'nonce-${nonce}' ${turnstile}`;
 
-  // ✅ FIX:
-  // Your site uses React/Next inline styles like style={...}.
-  // Production CSP with only nonce blocks style attributes.
-  // So we allow inline CSS styles, but keep JavaScript strict.
-  const styleSrc = isProduction
-    ? `'self' 'unsafe-inline' https://fonts.googleapis.com`
-    : `'self' 'unsafe-inline' https://fonts.googleapis.com`;
+  // Strict style-src: nonce-based, no unsafe-eval
+  const styleSrc = `'self' 'nonce-${nonce}' https://fonts.googleapis.com`;
 
-  const connectSrc = isProduction
-    ? `'self' https: ${turnstile}`
-    : `'self' http://localhost:* ws://localhost:* wss: https: ${turnstile}`;
+  // Specific image sources - no wildcard scheme (no https:)
+  const imgSrc = [
+    "'self'",
+    "data:",
+    "blob:",
+    "https://res.cloudinary.com",
+    "https://i.ibb.co",
+    "https://api.qrserver.com",
+    "https://img.freepik.com",
+  ].join(" ");
+
+  // Specific connect sources - allow local dev sockets only in development
+  const connectSrc = [
+    "'self'",
+    isDev ? "http://localhost:* ws://localhost:* wss:" : "",
+    turnstile,
+    "https://fonts.googleapis.com",
+    "https://fonts.gstatic.com",
+    "https://res.cloudinary.com",
+    "https://api.qrserver.com",
+    "https://i.ibb.co",
+    "https://img.freepik.com",
+    "https://tolasaint.com",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return [
     "default-src 'self'",
-
-    // ✅ Keep JavaScript protected
     `script-src ${scriptSrc}`,
-
-    // ✅ Fix CSP inline style errors
     `style-src ${styleSrc}`,
-    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    `style-src-elem 'self' 'nonce-${nonce}' ${isDev ? "'unsafe-inline'" : ""} https://fonts.googleapis.com`,
     "style-src-attr 'unsafe-inline'",
-
-    // ✅ Google Fonts
     "font-src 'self' data: https://fonts.gstatic.com",
-
-    // ✅ Images from your site, data URLs, blobs, and HTTPS storage/CDN
-    "img-src 'self' data: blob: https:",
-
-    // ✅ API / Turnstile / external HTTPS calls
+    `img-src ${imgSrc}`,
     `connect-src ${connectSrc}`,
-
-    // ✅ Required for Cloudflare Turnstile iframe
     `frame-src 'self' ${turnstile}`,
-
-    // ✅ Security hardening
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'",
     "manifest-src 'self'",
     "worker-src 'self' blob:",
-
-    isProduction ? "upgrade-insecure-requests" : "",
+    isDev ? "" : "upgrade-insecure-requests",
   ]
     .filter(Boolean)
     .join("; ");
@@ -213,8 +240,7 @@ function buildCspHeader(nonce: string, isProduction: boolean): string {
 function addSecurityHeaders(
   response: NextResponse,
   cspHeader: string,
-  nonce: string,
-  isProduction: boolean
+  nonce: string
 ): NextResponse {
   response.headers.set("Content-Security-Policy", cspHeader);
   response.headers.set("x-nonce", nonce);
@@ -222,18 +248,20 @@ function addSecurityHeaders(
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload"
+  );
 
   response.headers.set(
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=(), payment=()"
   );
 
-  if (isProduction) {
-    response.headers.set(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains"
-    );
-  }
+  // Prevent information disclosure (mask Server & strip X-Powered-By)
+  response.headers.delete("x-powered-by");
+  response.headers.delete("X-Powered-By");
+  response.headers.set("Server", "web");
 
   return response;
 }
@@ -246,11 +274,44 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
   }
 
   const nonce = generateNonce();
-  const isProduction = process.env.NODE_ENV === "production";
-  const cspHeader = buildCspHeader(nonce, isProduction);
+  const cspHeader = buildCspHeader(nonce);
 
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-nonce", nonce);
+
+  // ✅ API origin guard (Edge-safe): browser calls to /api/* must be
+  // same-origin or explicitly allowlisted via API_ALLOWED_ORIGINS /
+  // PUBLIC_APP_URL / NEXT_PUBLIC_BASE_URL. Non-browser callers (Flutter
+  // apps, curl, uptime monitors) send no Origin header and pass — they are
+  // only refused when Sec-Fetch-Site marks them as cross-site browser
+  // subresource abuse. Signature/secret-authenticated endpoints are
+  // exempt (ORIGIN_GUARD_EXEMPT_PREFIXES above). No CORS response headers
+  // are emitted: the public API is same-origin by design.
+  if (pathname.startsWith("/api/") && !isOriginGuardExempt(pathname)) {
+    const originCheck = isOriginAllowedForApi(req);
+    if (!originCheck.ok) {
+      logSecurityEvent({
+        event: "origin_blocked",
+        detail: `path=${pathname}; reason=${originCheck.reason}`,
+        ip: getRequestIp(req),
+      });
+
+      return addSecurityHeaders(
+        new NextResponse(
+          JSON.stringify({ error: "Forbidden" }),
+          {
+            status: 403,
+            headers: {
+              "Content-Type": "application/json",
+              "Cache-Control": "no-store",
+            },
+          }
+        ),
+        cspHeader,
+        nonce
+      );
+    }
+  }
 
   function nextResponse(): NextResponse {
     return addSecurityHeaders(
@@ -260,8 +321,7 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
         },
       }),
       cspHeader,
-      nonce,
-      isProduction
+      nonce
     );
   }
 
@@ -269,8 +329,7 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
     return addSecurityHeaders(
       NextResponse.redirect(url),
       cspHeader,
-      nonce,
-      isProduction
+      nonce
     );
   }
 
@@ -300,8 +359,7 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
     return addSecurityHeaders(
       NextResponse.rewrite(new URL(INTERNAL_LOGIN_ROUTE, req.url)),
       cspHeader,
-      nonce,
-      isProduction
+      nonce
     );
   }
 

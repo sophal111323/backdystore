@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 
 export type PublicVersionScope =
@@ -19,7 +20,12 @@ function maxTime(values: Array<Date | null | undefined>): number {
 }
 
 function versionFromTime(scope: string, time: number): string {
-  return `${scope}:${time || 0}`;
+  const digest = crypto
+    .createHash("sha256")
+    .update(`${scope}:${time || 0}`)
+    .digest("hex")
+    .slice(0, 16);
+  return `${scope}:${digest}`;
 }
 
 export async function getPublicDataVersion(options: {
@@ -101,9 +107,13 @@ export async function getPublicDataVersion(options: {
         select: { updatedAt: true, status: true },
       });
 
-      return `${scope}:${orderNumber}:${order?.status || "missing"}:${
-        order?.updatedAt?.getTime() ?? 0
-      }`;
+      const digest = crypto
+        .createHash("sha256")
+        .update(`${orderNumber}:${order?.status || "missing"}:${order?.updatedAt?.getTime() ?? 0}`)
+        .digest("hex")
+        .slice(0, 16);
+
+      return `${scope}:${orderNumber}:${order?.status || "missing"}:${digest}`;
     }
 
     const [settings, games, products, banners] = await Promise.all([

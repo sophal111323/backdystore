@@ -356,7 +356,7 @@ async function handleWeb2FA(req: NextRequest, inputCode: string) {
 
     res.cookies.set(ADMIN_COOKIE_NAME, adminToken, {
       httpOnly: true,
-      secure: isProduction,
+      secure: true,
       sameSite: "strict",
       path: "/",
       maxAge: SESSION_MAX_AGE_SECONDS,
@@ -364,7 +364,7 @@ async function handleWeb2FA(req: NextRequest, inputCode: string) {
 
     res.cookies.set(PENDING_2FA_COOKIE, "", {
       httpOnly: true,
-      secure: isProduction,
+      secure: true,
       sameSite: "strict",
       path: "/",
       maxAge: 0,
@@ -468,7 +468,7 @@ async function handleWeb2FA(req: NextRequest, inputCode: string) {
 
   res.cookies.set(ADMIN_COOKIE_NAME, adminToken, {
     httpOnly: true,
-    secure: isProduction,
+    secure: true,
     sameSite: "strict",
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   // Optional: mark homepage visitor as verified for short time
   res.cookies.set("turnstile_home_verified", "1", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: "lax",
     path: "/",
     maxAge: 10 * 60,

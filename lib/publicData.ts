@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { maskCdnUrl } from "@/lib/cdnMask";
 
 const rawPublicRevalidateSeconds = Number(
   process.env.PUBLIC_DATA_REVALIDATE_SECONDS || 10
@@ -121,7 +122,17 @@ export const getPublicHomeData = unstable_cache(
         }),
       ]);
 
-      return { games, banners };
+      const sanitizedGames = games.map((g) => ({
+        ...g,
+        imageUrl: maskCdnUrl(g.imageUrl) || g.imageUrl,
+      }));
+
+      const sanitizedBanners = banners.map((b) => ({
+        ...b,
+        imageUrl: maskCdnUrl(b.imageUrl) || b.imageUrl,
+      }));
+
+      return { games: sanitizedGames, banners: sanitizedBanners };
     });
   },
   ["public-home-v3"],
@@ -154,7 +165,7 @@ export const getPublicFaqs = unstable_cache(
 
 const getCachedPublicGameBySlug = unstable_cache(
   async (slug: string) => {
-    return prisma.game.findUnique({
+    const game = await prisma.game.findUnique({
       where: { slug },
       select: {
         id: true,
@@ -192,6 +203,18 @@ const getCachedPublicGameBySlug = unstable_cache(
         },
       },
     });
+
+    if (!game) return null;
+
+    return {
+      ...game,
+      imageUrl: maskCdnUrl(game.imageUrl) || game.imageUrl,
+      bannerUrl: maskCdnUrl(game.bannerUrl),
+      products: game.products.map((p) => ({
+        ...p,
+        imageUrl: maskCdnUrl(p.imageUrl) || p.imageUrl,
+      })),
+    };
   },
   ["public-game-by-slug-v2"],
   {

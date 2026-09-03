@@ -90,11 +90,12 @@ export default function AdminLoginPage() {
         }
 
         const savedEmail = localStorage.getItem("admin_login_email");
-        if (!savedEmail) return;
+        if (savedEmail) setEmail(savedEmail);
 
-        setEmail(savedEmail);
-
-        fetch(`/api/admin/auth?email=${encodeURIComponent(savedEmail)}`)
+        // Lock status is bound to the server-issued httpOnly admin_lock_ref
+        // cookie (set only after a real failed login on this browser) — no
+        // email query param is sent or needed.
+        fetch("/api/admin/auth")
           .then((r) => r.json())
           .then((loginData) => {
             if (!loginData.locked) return;

@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   return safeJson(
     {
       ok: true,
-      time: new Date().toISOString(),
+      status: "healthy",
       service: "DyTopup",
     },
     undefined,
