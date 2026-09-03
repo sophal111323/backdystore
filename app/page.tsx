@@ -62,10 +62,10 @@ export default async function HomePage() {
       {/* Game catalog */}
       <section
         id="games"
-        className="relative mx-auto max-w-7xl px-4 pt-1 pb-8 sm:pt-3 sm:pb-12 sm:px-6 lg:px-8"
+        className="relative mx-auto max-w-7xl px-2 sm:px-6 pt-2 pb-8 sm:pt-4 sm:pb-12"
       >
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 className="font-display text-lg sm:text-2xl font-extrabold text-pink-800 flex items-center gap-2">
+        <div className="flex items-center justify-between mb-3 sm:mb-4 px-1 sm:px-0">
+          <h2 className="font-display text-xl sm:text-2xl font-extrabold text-pink-800 flex items-center gap-2">
             <Image
               src="https://i.ibb.co/Q3MfYWGH/1000073292-removebg-preview.png"
               alt="icon"
@@ -77,7 +77,7 @@ export default async function HomePage() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-4 lg:gap-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
           {games.map((game, i) => (
             <div
               key={game.slug}

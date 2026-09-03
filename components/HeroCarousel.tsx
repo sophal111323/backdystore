@@ -38,7 +38,7 @@ export default function HeroCarousel({ banners }: { banners: Banner[] }) {
     const hasText = Boolean(banner.title?.trim() || banner.subtitle?.trim() || banner.ctaLabel?.trim());
 
     return (
-      <div className="relative aspect-[21/9] sm:aspect-[2.5/1] max-h-40 sm:max-h-56 lg:max-h-64 w-full shrink-0 rounded-2xl border-2 border-pink-200 shadow-sm shadow-pink-200/40 overflow-hidden bg-pink-100">
+      <div className="relative h-44 sm:h-60 lg:h-72 w-full shrink-0 rounded-2xl border-2 border-pink-200 shadow-md shadow-pink-200/40 overflow-hidden bg-pink-100">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={banner.imageUrl}

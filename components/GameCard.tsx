@@ -22,9 +22,9 @@ export default function GameCard({ slug, name, publisher, currencyName, imageUrl
         aria-hidden
       />
 
-      <div className="relative flex flex-col items-center rounded-2xl border-2 border-pink-200 bg-white p-2.5 sm:p-4 transition-all duration-500 group-hover:border-transparent group-hover:shadow-xl group-hover:shadow-pink-200/60">
+      <div className="relative flex flex-col items-center rounded-2xl border-2 border-pink-200 bg-white p-2 sm:p-3.5 transition-all duration-500 group-hover:border-transparent group-hover:shadow-xl group-hover:shadow-pink-200/60">
         {/* Game image */}
-        <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-pink-50 mb-2 sm:mb-3">
+        <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-pink-50 mb-2 sm:mb-2.5">
           <div
             className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110"
             style={imageUrl ? { backgroundImage: `url(${imageUrl})` } : { background: "linear-gradient(135deg,#FFE4F0,#FFCCE5)" }}
@@ -46,12 +46,12 @@ export default function GameCard({ slug, name, publisher, currencyName, imageUrl
         </div>
 
         {/* Game name */}
-        <h3 className="font-display font-extrabold text-xs sm:text-base text-center leading-tight mb-2 sm:mb-3 text-pink-800 transition-colors duration-300 group-hover:text-pink-600 line-clamp-1">
+        <h3 className="font-display font-extrabold text-[11px] sm:text-base text-center leading-tight mb-2 sm:mb-2.5 text-pink-800 transition-colors duration-300 group-hover:text-pink-600 line-clamp-2 min-h-[28px] sm:min-h-[38px] flex items-center justify-center">
           {name}
         </h3>
 
         {/* TOP UP button */}
-        <button className="btn-topup !py-1.5 sm:!py-2.5 !text-[11px] sm:!text-sm">
+        <button className="btn-topup !py-1.5 sm:!py-2 !text-xs sm:!text-sm font-bold">
           TOP UP
         </button>
       </div>
