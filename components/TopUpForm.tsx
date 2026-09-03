@@ -782,57 +782,59 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
 
       {/* Mobile sticky bottom */}
       {!dismissed && (
-        <div className="relative lg:hidden card p-5 sticky bottom-3 mt-8 border border-pink-400/30 shadow-2xl shadow-pink-300/10 backdrop-blur-md">
+        <div className="relative lg:hidden card p-3 sm:p-4 sticky bottom-2.5 mt-4 border border-pink-400/30 shadow-xl shadow-pink-300/20 backdrop-blur-md">
 
           {selectedProduct && (
-            <div className="flex justify-between items-center mb-4 pr-8">
+            <div className="flex justify-between items-center mb-2">
               <div>
-                <div className="text-xs uppercase tracking-wider text-pink-500">តម្លៃសរុប</div>
-                <div key={`${selectedProduct.id}-${currency}`} className="font-display text-3xl font-extrabold text-pink-600">
-                  {format(effectivePrice)}
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[11px] uppercase tracking-wider text-pink-500 font-medium">តម្លៃសរុប:</span>
+                  <span key={`${selectedProduct.id}-${currency}`} className="font-display text-xl font-extrabold text-pink-600">
+                    {format(effectivePrice)}
+                  </span>
+                  {currency === "USD" ? (
+                    <span className="text-[10px] text-pink-500 font-mono">≈ {toKhr(effectivePrice).toLocaleString("en-US")} ៛</span>
+                  ) : (
+                    <span className="text-[10px] text-pink-500 font-mono">≈ ${effectivePrice.toFixed(2)} USD</span>
+                  )}
                 </div>
-                {currency === "USD" ? (
-                  <div className="text-[11px] text-pink-500 font-mono">≈ {toKhr(effectivePrice).toLocaleString("en-US")} ៛</div>
-                ) : (
-                  <div className="text-[11px] text-pink-500 font-mono">≈ ${effectivePrice.toFixed(2)} USD</div>
-                )}
                 {promoApplied && (
-                  <div className="text-xs text-green-600">−{format(promoApplied.discountUsd)} off</div>
+                  <div className="text-[10px] text-green-600 font-medium">−{format(promoApplied.discountUsd)} off</div>
                 )}
               </div>
               <div className="text-right">
-                <div className="text-sm text-pink-500">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-pink-100/80 text-xs font-bold text-pink-700">
                   {selectedProduct.amount > 0
                     ? `${selectedProduct.amount.toLocaleString()} ${game.currencyName}`
                     : selectedProduct.name}
-                </div>
+                </span>
                 {selectedProduct.bonus > 0 && (
-                  <div className="text-xs text-pink-400">+ {selectedProduct.bonus} bonus</div>
+                  <div className="text-[10px] text-pink-400 font-medium">+ {selectedProduct.bonus} bonus</div>
                 )}
               </div>
             </div>
           )}
 
           {error && (
-            <div className="mb-4 rounded-lg border border-red-600 bg-red-100 p-3 text-sm text-red-600">
+            <div className="mb-2 rounded-lg border border-red-500 bg-red-50 p-2 text-xs text-red-600">
               {error}
             </div>
           )}
 
           {/* Mobile hint messages */}
           {!selected && (
-            <p className="mb-2 text-xs text-pink-400 text-center">👆 សូមជ្រើសរើសកញ្ចប់មុន</p>
+            <p className="mb-1.5 text-xs text-pink-500 text-center font-medium">👆 សូមជ្រើសរើសកញ្ចប់មុន</p>
           )}
           {!termsAccepted && (
-            <p className="mb-2 text-xs text-pink-400 text-center">
+            <p className="mb-1.5 text-xs text-pink-500 text-center font-medium">
               សូមចុច ✓ យល់ព្រមលក្ខខណ្ឌមុនបង់ប្រាក់
             </p>
           )}
           {selected && needsNickname && nicknameStatus !== "verified" && isValidUid(uid) && (
-            <p className="mb-2 text-xs text-pink-400 text-center">🔍 សូមពិនិត្យឈ្មោះ Player មុន</p>
+            <p className="mb-1.5 text-xs text-pink-500 text-center font-medium">🔍 សូមពិនិត្យឈ្មោះ Player មុន</p>
           )}
           {turnstileSiteKey && !turnstileToken && selected && (
-            <p className="mb-2 text-xs text-pink-500 text-center font-medium">
+            <p className="mb-1.5 text-xs text-pink-500 text-center font-medium">
               🛡️ កំពុងផ្ទៀងផ្ទាត់សុវត្ថិភាព…
             </p>
           )}
@@ -840,14 +842,14 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
           <button
             type="submit"
             disabled={!canSubmit || submitting}
-            className="btn-primary w-full text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            className="btn-primary w-full !py-2.5 text-sm font-extrabold disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
           >
             {submitting ? "Creating order..." : "Pay Now"}
-            {!submitting && <ArrowRight className="h-5 w-5" strokeWidth={2.5} />}
+            {!submitting && <ArrowRight className="h-4 w-4" strokeWidth={2.5} />}
           </button>
 
-          <p className="flex items-center justify-center gap-1.5 text-xs text-pink-500 text-center mt-3">
-            <Lock className="h-3 w-3" strokeWidth={2.5} />
+          <p className="flex items-center justify-center gap-1 text-[10px] text-pink-500 text-center mt-1.5">
+            <Lock className="h-2.5 w-2.5" strokeWidth={2.5} />
             ទូទាត់ប្រាក់ដោយសុវត្ថិភាព
           </p>
         </div>
