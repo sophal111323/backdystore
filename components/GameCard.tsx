@@ -22,9 +22,9 @@ export default function GameCard({ slug, name, publisher, currencyName, imageUrl
         aria-hidden
       />
 
-      <div className="relative flex flex-col items-center rounded-2xl border-2 border-pink-200 bg-white p-4 transition-all duration-500 group-hover:border-transparent group-hover:shadow-xl group-hover:shadow-pink-200/60">
+      <div className="relative flex flex-col items-center rounded-2xl border-2 border-pink-200 bg-white p-2.5 sm:p-4 transition-all duration-500 group-hover:border-transparent group-hover:shadow-xl group-hover:shadow-pink-200/60">
         {/* Game image */}
-        <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-pink-50 mb-3">
+        <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-pink-50 mb-2 sm:mb-3">
           <div
             className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110"
             style={imageUrl ? { backgroundImage: `url(${imageUrl})` } : { background: "linear-gradient(135deg,#FFE4F0,#FFCCE5)" }}
@@ -36,8 +36,8 @@ export default function GameCard({ slug, name, publisher, currencyName, imageUrl
           </div>
 
           {featured && (
-            <div className="absolute top-2 left-2 badge-best flex items-center gap-1 text-[9px]">
-              <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor">
+            <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 badge-best flex items-center gap-1 text-[8px] sm:text-[9px] px-2 py-0.5">
+              <svg className="h-2 w-2 sm:h-2.5 sm:w-2.5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" />
               </svg>
               HOT
@@ -46,12 +46,12 @@ export default function GameCard({ slug, name, publisher, currencyName, imageUrl
         </div>
 
         {/* Game name */}
-        <h3 className="font-display font-extrabold text-sm sm:text-base text-center leading-tight mb-3 text-pink-800 transition-colors duration-300 group-hover:text-pink-600">
+        <h3 className="font-display font-extrabold text-xs sm:text-base text-center leading-tight mb-2 sm:mb-3 text-pink-800 transition-colors duration-300 group-hover:text-pink-600 line-clamp-1">
           {name}
         </h3>
 
         {/* TOP UP button */}
-        <button className="btn-topup">
+        <button className="btn-topup !py-1.5 sm:!py-2.5 !text-[11px] sm:!text-sm">
           TOP UP
         </button>
       </div>

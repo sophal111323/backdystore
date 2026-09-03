@@ -31,7 +31,7 @@ export default async function HomePage() {
       <HomeInvisibleTurnstile />
 
       {/* Hero — scrolling image marquee */}
-      <section className="relative overflow-hidden py-6 sm:py-10">
+      <section className="relative overflow-hidden pt-3 pb-1 sm:pt-6 sm:pb-3">
         <div className="hero-bg" />
 
         <div
@@ -62,23 +62,22 @@ export default async function HomePage() {
       {/* Game catalog */}
       <section
         id="games"
-        className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8"
+        className="relative mx-auto max-w-7xl px-4 pt-1 pb-8 sm:pt-3 sm:pb-12 sm:px-6 lg:px-8"
       >
-        <div className="text-center mb-10">
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold mb-2 text-pink-800 flex items-center justify-center gap-2">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 className="font-display text-lg sm:text-2xl font-extrabold text-pink-800 flex items-center gap-2">
             <Image
               src="https://i.ibb.co/Q3MfYWGH/1000073292-removebg-preview.png"
               alt="icon"
-              width={48}
-              height={48}
-              className="h-12 w-12"
+              width={32}
+              height={32}
+              className="h-7 w-7 sm:h-8 sm:w-8"
             />
             ហ្គេមទាំងអស់
           </h2>
-          <p className="text-pink-500 text-sm font-bold"></p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-4 lg:gap-6">
           {games.map((game, i) => (
             <div
               key={game.slug}
