@@ -132,6 +132,45 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
     setNickname(null);
   }, []);
 
+  // 💾 Auto-load saved player ID, serverId, and verified nickname from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`dytopup_player_${game.slug}`);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data?.uid && typeof data.uid === "string") {
+          setUid(data.uid);
+          if (data.serverId && typeof data.serverId === "string") {
+            setServerId(data.serverId);
+          }
+          if (data.nickname && typeof data.nickname === "string") {
+            setNickname(data.nickname);
+            setNicknameStatus("verified");
+          }
+        }
+      }
+    } catch {}
+  }, [game.slug]);
+
+  // 💾 Helper to save player details to localStorage
+  const savePlayerToStorage = useCallback(
+    (newUid: string, newServerId?: string, newNickname?: string | null) => {
+      try {
+        if (!newUid.trim()) return;
+        localStorage.setItem(
+          `dytopup_player_${game.slug}`,
+          JSON.stringify({
+            uid: newUid.trim(),
+            serverId: (newServerId !== undefined ? newServerId : serverId).trim(),
+            nickname: newNickname !== undefined ? newNickname : nickname,
+            updatedAt: Date.now(),
+          })
+        );
+      } catch {}
+    },
+    [game.slug, serverId, nickname]
+  );
+
   const handleCheckNickname = useCallback(async () => {
     if (!supportsLookup) return;
     if (!isValidUid(uid)) return;
@@ -160,6 +199,7 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
       if (data.verified && data.nickname) {
         setNickname(data.nickname);
         setNicknameStatus("verified");
+        savePlayerToStorage(uid, serverId, data.nickname);
       } else {
         setNicknameStatus("not_found");
       }
@@ -168,7 +208,7 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
         setNicknameStatus("not_found");
       }
     }
-  }, [uid, serverId, game.slug, supportsLookup, useZoneField]);
+  }, [uid, serverId, game.slug, supportsLookup, useZoneField, savePlayerToStorage]);
 
   const selectedProduct = products.find((p) => p.id === selected);
   const needsServer = game.requiresServer || useZoneField;
@@ -224,6 +264,7 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
 
     setSubmitting(true);
     setError(null);
+    savePlayerToStorage(uid.trim(), needsServer ? serverId.trim() : undefined, nickname);
 
     try {
       const res = await fetch("/api/orders", {
@@ -310,6 +351,11 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                     inputMode="numeric"
                     value={uid}
                     onChange={(e) => { setUid(e.target.value); resetLookup(); }}
+                    onBlur={() => {
+                      if (isValidUid(uid)) {
+                        savePlayerToStorage(uid, serverId);
+                      }
+                    }}
                     placeholder={useZoneField ? "12345678" : (game.uidExample || "Enter your player ID")}
                     className="input font-mono text-sm sm:text-base py-2.5"
                     required
@@ -331,6 +377,11 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                       inputMode="numeric"
                       value={serverId}
                       onChange={(e) => setServerId(e.target.value)}
+                      onBlur={() => {
+                        if (isValidUid(uid)) {
+                          savePlayerToStorage(uid, serverId);
+                        }
+                      }}
                       placeholder="1234"
                       className="input font-mono text-sm sm:text-base py-2.5"
                       required

@@ -109,8 +109,15 @@ export default async function HomePage() {
 
 
       {/* Features */}
-      <section className="relative mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid sm:grid-cols-3 gap-5">
+      <section className="relative mx-auto max-w-5xl px-3 sm:px-6 pt-2 pb-10 sm:pt-4 sm:pb-12">
+        <div className="mb-3 sm:mb-4 px-1 sm:px-0">
+          <h2 className="font-display text-lg sm:text-2xl font-extrabold text-pink-800 flex items-center gap-2">
+            <span>✨</span>
+            <span>ហេតុអ្វីបានជ្រើសរើសយកពួកយើង?</span>
+          </h2>
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-3 sm:gap-5">
           {[
             {
               Icon: Zap,
