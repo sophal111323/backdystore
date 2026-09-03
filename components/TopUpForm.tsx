@@ -356,7 +356,7 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
               )}
 
               {supportsLookup && (
-                <div className="pt-0.5 flex flex-col gap-2">
+                <div className="pt-0.5 flex flex-wrap items-center gap-2 sm:gap-2.5">
                   <button
                     type="button"
                     onClick={handleCheckNickname}
@@ -365,7 +365,7 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                       (useZoneField && serverId.trim().length === 0) ||
                       nicknameStatus === "checking"
                     }
-                    className="btn-ghost text-xs py-1.5 px-3.5 inline-flex items-center gap-1.5 self-start disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="btn-ghost text-xs py-1.5 px-3.5 inline-flex items-center gap-1.5 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {nicknameStatus === "checking" ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2} />
@@ -376,15 +376,15 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                   </button>
 
                   {nicknameStatus === "verified" && nickname && (
-                    <span className="inline-flex items-center gap-2 rounded-lg border border-green-600 bg-green-100 px-3 py-1.5 text-xs text-green-600 animate-scale-in self-start">
-                      <UserRoundCheck className="h-3.5 w-3.5" strokeWidth={2} />
-                      <span className="text-pink-500">Player:</span>
-                      <span className="font-semibold text-green-700">{nickname}</span>
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-green-600 bg-green-100 px-2.5 py-1 text-xs text-green-600 animate-scale-in">
+                      <UserRoundCheck className="h-3.5 w-3.5 shrink-0 text-green-600" strokeWidth={2} />
+                      <span className="text-pink-500 font-medium">Player:</span>
+                      <span className="font-bold text-green-800">{nickname}</span>
                     </span>
                   )}
                   {nicknameStatus === "not_found" && (
-                    <span className="inline-flex items-center gap-2 rounded-lg border border-red-500 bg-red-50 px-3 py-1.5 text-xs text-red-600 self-start">
-                      <AlertCircle className="h-3.5 w-3.5" strokeWidth={2} />
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-red-500 bg-red-50 px-2.5 py-1 text-xs text-red-600">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                       គណនីរកមិនឃើញ — សូមពិនិត្យ ID ម្តងទៀត
                     </span>
                   )}
