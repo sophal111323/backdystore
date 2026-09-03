@@ -39,7 +39,7 @@ interface Game {
 }
 
 export default function TopUpForm({ game, products }: { game: Game; products: Product[] }) {
-  const { format, currency, toKhr } = useCurrency();
+  const { format, currency } = useCurrency();
   const [selected, setSelected] = useState<string | null>(null);
   const [uid, setUid] = useState("");
   const [serverId, setServerId] = useState(
@@ -721,15 +721,6 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                         <span key={`${selectedProduct.id}-${currency}`} className="font-display text-3xl font-extrabold text-pink-600 inline-block">
                           {format(effectivePrice)}
                         </span>
-                        {currency === "USD" ? (
-                          <div className="text-[11px] text-pink-500 mt-0.5 font-mono">
-                            ≈ {toKhr(effectivePrice).toLocaleString("en-US")} ៛
-                          </div>
-                        ) : (
-                          <div className="text-[11px] text-pink-500 mt-0.5 font-mono">
-                            ≈ ${effectivePrice.toFixed(2)} USD
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -792,11 +783,6 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                   <span key={`${selectedProduct.id}-${currency}`} className="font-display text-xl font-extrabold text-pink-600">
                     {format(effectivePrice)}
                   </span>
-                  {currency === "USD" ? (
-                    <span className="text-[10px] text-pink-500 font-mono">≈ {toKhr(effectivePrice).toLocaleString("en-US")} ៛</span>
-                  ) : (
-                    <span className="text-[10px] text-pink-500 font-mono">≈ ${effectivePrice.toFixed(2)} USD</span>
-                  )}
                 </div>
                 {promoApplied && (
                   <div className="text-[10px] text-green-600 font-medium">−{format(promoApplied.discountUsd)} off</div>

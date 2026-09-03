@@ -11,9 +11,6 @@ import {
   Zap,
   ShieldCheck,
   BadgePercent,
-  Gamepad2,
-  UserRoundCheck,
-  CreditCard,
   ArrowRight,
 } from "lucide-react";
 
@@ -109,83 +106,7 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* How it works */}
-      <section className="relative mx-auto max-w-5xl px-4 py-14 sm:px-6 lg:px-8">
-        <div
-          className="absolute inset-0 rounded-3xl mx-4 opacity-10"
-          style={{ background: "linear-gradient(135deg,#E91E8C,#FF6EB4)" }}
-        />
 
-        <div className="relative text-center mb-10">
-          <div
-            className="inline-block rounded-2xl px-6 py-2 mb-4 font-extrabold text-white text-sm shadow-lg shadow-pink-300/40"
-            style={{ background: "linear-gradient(135deg,#E91E8C,#FF6EB4)" }}
-          >
-            📋 របៀបប្រើប្រាស់
-          </div>
-
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold mb-2 text-pink-800">
-            ដំណើរការ Top Up
-          </h2>
-
-          <p className="text-pink-500 text-sm font-bold">
-            បីជំហានងាយស្រួល ក្នុងរយៈពេលក្រោមមួយនាទី
-          </p>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-5">
-          {[
-            {
-              step: "01",
-              Icon: Gamepad2,
-              title: "ជ្រើសរើសហ្គេម",
-              desc: "ជ្រើសរើសហ្គេមពីបញ្ជីហ្គេមដ៏ពេញនិយមរបស់យើង",
-            },
-            {
-              step: "02",
-              Icon: UserRoundCheck,
-              title: "បញ្ចូល UID",
-              desc: "បញ្ចូល Player IDរបស់លោកអ្នក",
-            },
-            {
-              step: "03",
-              Icon: CreditCard,
-              title: "បង់ & ទទួល",
-              desc: "បង់ជាមួយ KHQR។ Diamonds មកដល់ភ្លាមៗ!",
-            },
-          ].map((s, i) => (
-            <div
-              key={s.step}
-              className="group relative rounded-2xl border-2 border-pink-200 bg-white p-6 text-center transition-all duration-500 hover:border-pink-400 hover:-translate-y-1 hover:shadow-xl hover:shadow-pink-200/60 fade-up"
-              style={{ animationDelay: `${i * 100}ms` }}
-            >
-              <div
-                className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-[10px] font-extrabold text-white shadow-md"
-                style={{
-                  background: "linear-gradient(135deg,#E91E8C,#FF6EB4)",
-                }}
-              >
-                STEP {s.step}
-              </div>
-
-              <div
-                className="inline-flex h-14 w-14 items-center justify-center rounded-2xl mb-4 mt-2 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-md shadow-pink-200/60"
-                style={{
-                  background: "linear-gradient(135deg,#FFE4F0,#FFB3D1)",
-                }}
-              >
-                <s.Icon className="h-7 w-7 text-pink-600" strokeWidth={2} />
-              </div>
-
-              <h3 className="font-display text-lg font-extrabold mb-1 text-pink-800">
-                {s.title}
-              </h3>
-
-              <p className="text-sm text-pink-500 font-medium">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* Features */}
       <section className="relative mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
@@ -235,79 +156,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section
-        id="faq"
-        className="relative mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:px-8"
-      >
-        <div className="text-center mb-10">
-          <div
-            className="inline-block rounded-2xl px-6 py-2 mb-4 font-extrabold text-white text-sm shadow-lg shadow-pink-300/40"
-            style={{ background: "linear-gradient(135deg,#E91E8C,#FF6EB4)" }}
-          >
-            ❓ ចម្លើយដែលសួរញឹកញាប់
-          </div>
 
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold mb-2 text-pink-800">
-            FAQ
-          </h2>
-        </div>
-
-        <div className="space-y-3">
-          {[
-            {
-              q: "ការដឹកជញ្ជូនចំណាយពេលប៉ុន្មាន?",
-              a: "ភ្លាមៗ — ប៉ុន្មានវិនាទីបន្ទាប់ពីការបង់ប្រាក់ត្រូវបានបញ្ជាក់។ អាចដល់ ៥ នាទីក្នុងម៉ោងមមាញឹក។",
-            },
-            {
-              q: "វាមានសុវត្ថិភាពសម្រាប់គណនីរបស់ខ្ញុំទេ?",
-              a: "បាទ/ចាស។ យើងត្រូវការតែ UID របស់អ្នក — មិនត្រូវការ Password ឡើយ។ ការបញ្ជាទិញតាមរយៈអ្នកចែកចាយដែលមានអាជ្ញាប័ណ្ណ។",
-            },
-            {
-              q: "វិធីទូទាត់អ្វីខ្លះ?",
-              a: "KHQR ដែលគាំទ្រ (ABA, Wing, ជាដើម)។",
-            },
-            {
-              q: "បញ្ចូល UID ខុស?",
-              a: "ទំនាក់ទំនងយើងតាម Telegram @thephal ភ្លាមៗ។ យើងអាចជួសជុលវាមុនការដឹកជញ្ជូន។",
-            },
-            {
-              q: "តើខ្ញុំអាចទទួលបានការបញ្ចុះតម្លៃទេ?",
-              a: "បាទ/ចាស លោកអ្នកអាចទទួលបានការបញ្ចុះតម្លៃតាមរយៈ promo និង Events ផ្សេងៗ",
-            },
-          ].map((item, i) => (
-            <details
-              key={i}
-              className="group rounded-2xl border-2 border-pink-200 bg-white transition-all duration-300 open:border-pink-400 open:bg-pink-50 open:shadow-lg open:shadow-pink-200/40"
-            >
-              <summary className="flex cursor-pointer list-none items-center justify-between p-5 font-extrabold text-sm text-pink-800">
-                {item.q}
-
-                <span
-                  className="ml-4 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-pink-300 text-pink-500 transition-transform duration-300 group-open:rotate-45 group-open:border-pink-500"
-                  style={{
-                    background: "linear-gradient(135deg,#FFE4F0,#FFB3D1)",
-                  }}
-                >
-                  <svg
-                    className="h-3.5 w-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                  >
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                </span>
-              </summary>
-
-              <p className="px-5 pb-5 text-sm text-pink-600 font-medium leading-relaxed">
-                {item.a}
-              </p>
-            </details>
-          ))}
-        </div>
-      </section>
 
       {/* CTA Banner */}
       <section className="relative mx-auto max-w-5xl px-4 pb-14 sm:px-6 lg:px-8">
