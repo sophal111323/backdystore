@@ -34,31 +34,41 @@ export default function HeroCarousel({ banners }: { banners: Banner[] }) {
 
   if (banners.length === 0) return null;
 
-  const renderCard = (banner: Banner) => (
-    <div className="relative h-52 sm:h-72 lg:h-80 w-full shrink-0 rounded-2xl border-2 border-pink-200 shadow-md shadow-pink-100/60 overflow-hidden">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={banner.imageUrl}
-        alt={banner.title}
-        className="h-full w-full object-cover"
-        draggable={false}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
-        <h3 className="font-display text-sm sm:text-base lg:text-lg font-bold text-white drop-shadow line-clamp-1">
-          {banner.title}
-        </h3>
-        {banner.subtitle && (
-          <p className="text-xs text-white/75 mt-0.5 line-clamp-1">{banner.subtitle}</p>
-        )}
-        {banner.ctaLabel && (
-          <span className="mt-2 inline-flex items-center rounded-lg bg-pink-500 px-3 py-1 text-xs font-bold text-white shadow">
-            {banner.ctaLabel}
-          </span>
+  const renderCard = (banner: Banner) => {
+    const hasText = Boolean(banner.title?.trim() || banner.subtitle?.trim() || banner.ctaLabel?.trim());
+
+    return (
+      <div className="relative aspect-[21/9] sm:aspect-[2.5/1] max-h-40 sm:max-h-56 lg:max-h-64 w-full shrink-0 rounded-2xl border-2 border-pink-200 shadow-sm shadow-pink-200/40 overflow-hidden bg-pink-100">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={banner.imageUrl}
+          alt={banner.title || "Banner"}
+          className="h-full w-full object-cover object-center"
+          draggable={false}
+        />
+        {hasText && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+              {banner.title && (
+                <h3 className="font-display text-xs sm:text-base font-bold text-white drop-shadow line-clamp-1">
+                  {banner.title}
+                </h3>
+              )}
+              {banner.subtitle && (
+                <p className="text-[11px] sm:text-xs text-white/80 mt-0.5 line-clamp-1">{banner.subtitle}</p>
+              )}
+              {banner.ctaLabel && (
+                <span className="mt-1.5 inline-flex items-center rounded-lg bg-pink-500 px-2.5 py-0.5 text-[10px] sm:text-xs font-bold text-white shadow">
+                  {banner.ctaLabel}
+                </span>
+              )}
+            </div>
+          </>
         )}
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="relative mx-auto max-w-5xl px-4 sm:px-6" style={{ overflow: "hidden" }}>
