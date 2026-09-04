@@ -14,6 +14,7 @@ import {
   Check,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { playPaymentSuccessSound } from "@/lib/sound";
 
 type OrderPayment = {
   orderNumber: string;
@@ -61,6 +62,15 @@ export default function KHQRBottomSheet({
 
   const paymentPollBusyRef = useRef(false);
   const paymentPollStartedAtRef = useRef(Date.now());
+  const hasPlayedSoundRef = useRef(false);
+
+  // ✅ Auto-play payment success sound in background
+  useEffect(() => {
+    if (isPaid(currentOrder.status) && !hasPlayedSoundRef.current) {
+      hasPlayedSoundRef.current = true;
+      playPaymentSuccessSound();
+    }
+  }, [currentOrder.status]);
 
   const orderPageUrl = `/order?orderNumber=${encodeURIComponent(
     currentOrder.orderNumber

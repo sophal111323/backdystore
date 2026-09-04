@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCurrency } from "@/lib/currency";
+import { playPaymentSuccessSound } from "@/lib/sound";
 import {
   QrCode,
   Clock,
@@ -415,6 +416,7 @@ export default function CheckoutClient() {
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
   const [simulating,  setSimulating]  = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hasPlayedSoundRef = useRef(false);
 
   const fetchOrder = useCallback(async () => {
     try {
@@ -507,6 +509,14 @@ export default function CheckoutClient() {
 
   const isExpired = remainingMs !== null && remainingMs <= 0 && !PAID_STATES.has(order?.status ?? "");
   const isPaid    = order ? PAID_STATES.has(order.status) : false;
+
+  // ✅ Auto-play payment success sound in background
+  useEffect(() => {
+    if (isPaid && !hasPlayedSoundRef.current) {
+      hasPlayedSoundRef.current = true;
+      playPaymentSuccessSound();
+    }
+  }, [isPaid]);
 
   return (
     <>
