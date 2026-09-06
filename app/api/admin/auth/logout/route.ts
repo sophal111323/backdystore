@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getCurrentAdminFromRequest } from "@/lib/auth";
 import { revokeAdminBearerSession } from "@/lib/adminMobileAuth";
 import { writeAuditForAdmin } from "@/lib/audit";
+import { ACCESS_KEY_PENDING_COOKIE } from "@/lib/accessKey";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest) {
 
   // Also clear web cookies so this endpoint can safely logout web or mobile callers.
   res.cookies.set(ADMIN_COOKIE_NAME, "", cookieOpts);
+  res.cookies.set(ACCESS_KEY_PENDING_COOKIE, "", cookieOpts);
   res.cookies.set(PENDING_2FA_COOKIE, "", cookieOpts);
 
   return res;

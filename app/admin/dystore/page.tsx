@@ -26,11 +26,13 @@ import {
 export default function AdminLoginPage() {
   const router = useRouter();
 
-  const [step, setStep] = useState<"login" | "2fa">("login");
+  const [step, setStep] = useState<"login" | "accessKey" | "2fa">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accessKey, setAccessKey] = useState("");
   const [code, setCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showAccessKey, setShowAccessKey] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [banned, setBanned] = useState(false);
@@ -71,46 +73,65 @@ export default function AdminLoginPage() {
     return () => clearInterval(interval);
   }, [lockedUntil]);
 
+  // Resume at whichever step this browser's cookies place it in. Checked from
+  // last to first so the furthest stage reached wins.
   useEffect(() => {
-    fetch("/api/admin/auth/2fa")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.step === "2fa") {
-          setStep("2fa");
+    let cancelled = false;
 
-          if (data.locked && data.forever) {
-            setBanned(true);
-            setError("គណនីត្រូវបាន lock ជាអចិន្ត្រៃយ៍ សូមទាក់ទង owner។");
-          } else if (data.locked && data.lockedUntil) {
-            setLockedUntil(new Date(data.lockedUntil));
-            setError(`កូដ 2FA ខុស សូមរង់ចាំ ${data.retryAfter || "បន្តិច"}។`);
-          }
+    const getJson = (url: string) =>
+      fetch(url, { credentials: "include" })
+        .then((r) => r.json())
+        .catch(() => null);
 
-          return;
-        }
+    const applyLock = (data: Record<string, unknown> | null, wrongLabel: string) => {
+      if (!data?.locked) return;
 
-        const savedEmail = localStorage.getItem("admin_login_email");
-        if (savedEmail) setEmail(savedEmail);
+      if (data.forever) {
+        setBanned(true);
+        setError("គណនីត្រូវបាន lock ជាអចិន្ត្រៃយ៍។ សូមទាក់ទង owner។");
+        return;
+      }
 
-        // Lock status is bound to the server-issued httpOnly admin_lock_ref
-        // cookie (set only after a real failed login on this browser) — no
-        // email query param is sent or needed.
-        fetch("/api/admin/auth")
-          .then((r) => r.json())
-          .then((loginData) => {
-            if (!loginData.locked) return;
+      if (data.lockedUntil) {
+        setLockedUntil(new Date(data.lockedUntil as string));
+        setError(`${wrongLabel} សូមរង់ចាំ ${data.retryAfter || "បន្តិច"}។`);
+      }
+    };
 
-            if (loginData.forever) {
-              setBanned(true);
-              setError("គណនីត្រូវបាន lock ជាអចិន្ត្រៃយ៍។ សូមទាក់ទង owner។");
-            } else if (loginData.lockedUntil) {
-              setLockedUntil(new Date(loginData.lockedUntil));
-              setError(`Password ខុស សូមរង់ចាំ ${loginData.retryAfter || "បន្តិច"}។`);
-            }
-          })
-          .catch(() => {});
-      })
-      .catch(() => {});
+    (async () => {
+      const twoFa = await getJson("/api/admin/auth/2fa");
+      if (cancelled) return;
+
+      if (twoFa?.step === "2fa") {
+        setStep("2fa");
+        applyLock(twoFa, "កូដ 2FA ខុស។");
+        return;
+      }
+
+      const keyStep = await getJson("/api/admin/auth/access-key");
+      if (cancelled) return;
+
+      if (keyStep?.step === "accessKey") {
+        setStep("accessKey");
+        applyLock(keyStep, "Access key ខុស។");
+        return;
+      }
+
+      const savedEmail = localStorage.getItem("admin_login_email");
+      if (savedEmail) setEmail(savedEmail);
+
+      // Lock status is bound to the server-issued httpOnly admin_lock_ref
+      // cookie (set only after a real failed login on this browser) — no
+      // email query param is sent or needed.
+      const loginLock = await getJson("/api/admin/auth");
+      if (cancelled) return;
+
+      applyLock(loginLock, "Password ខុស។");
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const isLocked = banned || !!lockedUntil;
@@ -165,9 +186,9 @@ export default function AdminLoginPage() {
         throw new Error(data.error || "មានបញ្ហាក្នុងការចូល");
       }
 
-      if (data.requires2FA) {
-        setStep("2fa");
-        setCode("");
+      if (data.requiresAccessKey) {
+        setStep("accessKey");
+        setAccessKey("");
         setError(null);
         return;
       }
@@ -179,6 +200,67 @@ export default function AdminLoginPage() {
       turnstileRef.current?.reset();
       setTurnstileToken(null);
       setError(err instanceof Error ? err.message : "មានបញ្ហាក្នុងការចូល");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerifyAccessKey(e: FormEvent) {
+    e.preventDefault();
+    if (isLocked || loading) return;
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/admin/auth/access-key", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessKey }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      const message = data.error || data.message || "";
+
+      if (res.status === 403) {
+        setBanned(true);
+        setError(message || "គណនីត្រូវបានផ្អាក");
+        return;
+      }
+
+      if (res.status === 429) {
+        if (data.lockedUntil) setLockedUntil(new Date(data.lockedUntil));
+        setError(message || "ព្យាយាមច្រើនដងពេក។ សូមរង់ចាំ។");
+        return;
+      }
+
+      if (data.step === "login") {
+        setAccessKey("");
+        setPassword("");
+        setStep("login");
+        setError(message || "Session ផុតកំណត់។ សូមចូលម្តងទៀត។");
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(message || "Access key មិនត្រឹមត្រូវ");
+      }
+
+      setAccessKey("");
+
+      if (data.requires2FA) {
+        setStep("2fa");
+        setCode("");
+        setError(null);
+        return;
+      }
+
+      localStorage.removeItem("admin_login_email");
+      router.push("/admin");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Access key មិនត្រឹមត្រូវ");
     } finally {
       setLoading(false);
     }
@@ -253,6 +335,7 @@ export default function AdminLoginPage() {
 
     setStep("login");
     setPassword("");
+    setAccessKey("");
     setCode("");
     setError(null);
     setBanned(false);
@@ -271,6 +354,26 @@ export default function AdminLoginPage() {
 
   const submitBtnCls =
     "admin-login-button group relative mt-2 flex h-[58px] w-full items-center justify-center gap-3 overflow-hidden rounded-[24px] border border-white/35 bg-[linear-gradient(135deg,#ff74b8_0%,#ef3f8f_42%,#c81568_100%)] text-[1rem] font-bold text-white shadow-[0_18px_42px_rgba(219,39,119,0.38),inset_0_1px_0_rgba(255,255,255,0.45)] transition-all duration-300 hover:enabled:-translate-y-1 hover:enabled:scale-[1.012] hover:enabled:shadow-[0_24px_54px_rgba(219,39,119,0.48),inset_0_1px_0_rgba(255,255,255,0.55)] active:enabled:translate-y-0 active:enabled:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none";
+
+  const stepMeta = {
+    login: {
+      icon: <Sparkles size={24} />,
+      title: "ចូលគណនីអ្នកគ្រប់គ្រង",
+      subtitle: "ប្រព័ន្ធគ្រប់គ្រង DyTopup មានសុវត្ថិភាព និងរចនាស្អាតជាងមុន",
+    },
+    accessKey: {
+      icon: <KeyRound size={25} />,
+      title: "បញ្ចូល Access Key",
+      subtitle:
+        "ជំហានទី 2 ក្នុង 3។ Password ត្រឹមត្រូវហើយ។ សូមបញ្ចូល Access Key ដើម្បីបន្ត។",
+    },
+    "2fa": {
+      icon: <ShieldCheck size={25} />,
+      title: "បញ្ជាក់កូដ 2FA",
+      subtitle:
+        "ជំហានទី 3 ក្នុង 3។ សូមបញ្ចូលកូដ 2FA ដើម្បីបន្តចូល Admin Panel។",
+    },
+  }[step];
 
   return (
     <main className="admin-login-page font-khmer relative min-h-screen overflow-hidden bg-[#ffe9f3] px-4 py-8 text-[#5a1232] sm:px-6">
@@ -329,16 +432,14 @@ export default function AdminLoginPage() {
 
           <div className="relative text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/70 bg-white/65 text-[#e91e63] shadow-[0_10px_30px_rgba(233,30,99,0.15)]">
-              {step === "login" ? <Sparkles size={24} /> : <ShieldCheck size={25} />}
+              {stepMeta.icon}
             </div>
 
             <h1 className="text-[1.75rem] font-black leading-tight tracking-[-0.03em] text-[#d41467] sm:text-[2.25rem]">
-              {step === "login" ? "ចូលគណនីអ្នកគ្រប់គ្រង" : "បញ្ជាក់កូដ 2FA"}
+              {stepMeta.title}
             </h1>
             <p className="mx-auto mt-2 max-w-sm text-sm font-semibold leading-6 text-[#9f5a77]">
-              {step === "login"
-                ? "ប្រព័ន្ធគ្រប់គ្រង DyTopup មានសុវត្ថិភាព និងរចនាស្អាតជាងមុន"
-                : "Password ត្រឹមត្រូវហើយ។ សូមបញ្ចូលកូដ 2FA ដើម្បីបន្តចូល Admin Panel"}
+              {stepMeta.subtitle}
             </p>
             <div className="mx-auto my-6 flex w-24 items-center justify-center gap-2">
               <span className="h-px flex-1 bg-[#f384b7]" />
@@ -439,6 +540,73 @@ export default function AdminLoginPage() {
                     <span className="relative">ចូលគណនី</span>
                   </>
                 )}
+              </button>
+            </form>
+          ) : step === "accessKey" ? (
+            <form className="relative space-y-5" onSubmit={handleVerifyAccessKey}>
+              <div>
+                <label className="mb-2 block text-sm font-extrabold text-[#ba376f]">
+                  Access Key
+                </label>
+                <div className="relative">
+                  <KeyRound className="pointer-events-none absolute left-5 top-1/2 z-10 -translate-y-1/2 text-[#e05493]" size={21} />
+                  <input
+                    type={showAccessKey ? "text" : "password"}
+                    className={`${inputCls} pr-14`}
+                    placeholder="បិទភ្ជាប់ Access Key របស់អ្នក"
+                    value={accessKey}
+                    onChange={(e) => setAccessKey(e.target.value)}
+                    required
+                    autoFocus
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={isLocked || loading}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-2xl text-[#bd7894] transition-all duration-300 hover:bg-[#ffe2ef] hover:text-[#e91e63] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                    onClick={() => setShowAccessKey(!showAccessKey)}
+                    disabled={isLocked || loading}
+                    aria-label={showAccessKey ? "Hide access key" : "Show access key"}
+                  >
+                    {showAccessKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              <LoginError error={error} banned={banned} countdown={countdown} />
+
+              <button
+                type="submit"
+                className={submitBtnCls}
+                disabled={loading || isLocked}
+              >
+                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                {loading ? (
+                  <>
+                    <Loader2 className="relative animate-spin" size={21} />
+                    <span className="relative">កំពុងពិនិត្យ…</span>
+                  </>
+                ) : banned ? (
+                  <span className="relative">🔒 គណនីត្រូវបានផ្អាកជាអចិន្ត្រៃយ៍</span>
+                ) : lockedUntil ? (
+                  <span className="relative">⏳ Lock {countdown}</span>
+                ) : (
+                  <>
+                    <KeyRound className="relative text-yellow-200 drop-shadow" size={22} />
+                    <span className="relative">បញ្ជាក់ Access Key</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                className="mt-3 flex h-[52px] w-full items-center justify-center gap-2 rounded-[22px] border border-[#f7a7ca]/55 bg-white/62 font-bold text-[#c2185b] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/82 hover:shadow-[0_16px_34px_rgba(233,30,99,0.14)] active:translate-y-0 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={loading}
+                onClick={handleBackToLogin}
+              >
+                <ArrowLeft size={18} />
+                ត្រឡប់ទៅ Login
               </button>
             </form>
           ) : (

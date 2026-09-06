@@ -10,6 +10,7 @@ import { getLockDurationMs, formatLockDuration } from "@/lib/lockPolicy";
 import { createAdminLoginChallenge } from "@/lib/adminMobileAuth";
 import { writeAuditForAdmin } from "@/lib/audit";
 import { adminApiErrorResponse } from "@/lib/adminApiError";
+import { isAccessKeyConfigured, verifyAccessKey } from "@/lib/accessKey";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,6 +18,7 @@ export const runtime = "nodejs";
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  accessKey: z.string().min(1).max(4096),
 });
 
 const DUMMY_HASH =
@@ -25,12 +27,17 @@ const DUMMY_HASH =
 /**
  * Flutter (native) admin login. The browser Turnstile challenge used by the
  * web login (POST /api/admin/auth) cannot be rendered inside the native app,
- * and the API must stay backward compatible with the shipped Flutter client,
  * so bot defense here relies on compensating controls: strict per-IP rate
  * limiting, the shared `admin-login:<email>` lockout (same identifier as the
  * web login), constant-time bcrypt comparison against a dummy hash for
- * unknown emails, and mandatory TOTP 2FA before any session is issued.
- * Every attempt is audit-logged. Do not remove or weaken these controls.
+ * unknown emails, the shared admin access key, and mandatory TOTP 2FA before
+ * any session is issued. Every attempt is audit-logged. Do not remove or
+ * weaken these controls.
+ *
+ * The access key is required in the same request as the password because a
+ * native client has no cookie chain to stage it across calls. Clients that do
+ * not send `accessKey` are rejected — the web flow's three separate steps and
+ * this flow's single step enforce the same three factors.
  */
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
@@ -82,6 +89,62 @@ export async function POST(req: NextRequest) {
       await handleLoginFail(identifier, lock?.failCount ?? 0, ip, req);
       return invalidLoginResponse(401);
     }
+
+    if (!isAccessKeyConfigured()) {
+      logSecurityEvent({
+        event: "admin_access_key_not_configured",
+        ip,
+        adminId: admin.id,
+      });
+
+      return NextResponse.json(
+        {
+          error:
+            "Access key is not configured on the server. Contact the site owner.",
+        },
+        { status: 503, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+
+    // Checked after the password so a wrong key reveals nothing about which
+    // emails exist. Shares the `admin-access-key:<adminId>` lockout with the
+    // web step, so failures on either surface count together.
+    const keyIdentifier = `admin-access-key:${admin.id}`;
+    const keyLock = await prisma.adminAuthLock.findUnique({
+      where: { identifier: keyIdentifier },
+    });
+
+    if (keyLock?.forever) {
+      return invalidLoginResponse(403);
+    }
+
+    if (keyLock?.lockedUntil && keyLock.lockedUntil > new Date()) {
+      const remainingMs = keyLock.lockedUntil.getTime() - Date.now();
+      return NextResponse.json(
+        {
+          error: `Too many failed attempts. Please try again in ${formatLockDuration(
+            remainingMs
+          )}.`,
+          lockedUntil: keyLock.lockedUntil,
+          retryAfter: formatLockDuration(remainingMs),
+        },
+        { status: 429, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+
+    if (!(await verifyAccessKey(parsed.data.accessKey))) {
+      await handleAccessKeyFail(
+        keyIdentifier,
+        keyLock?.failCount ?? 0,
+        ip,
+        req,
+        admin
+      );
+
+      return invalidLoginResponse(401);
+    }
+
+    await prisma.adminAuthLock.deleteMany({ where: { identifier: keyIdentifier } });
 
     if (!admin.totpSecret) {
       await writeAuditForAdmin(admin, req, {
@@ -167,5 +230,39 @@ async function handleLoginFail(
     action: "admin_mobile_login_failed",
     targetType: "AdminAuth",
     details: { identifier, failCount: nextFail },
+  });
+}
+
+/** The submitted key is not a parameter here, so it cannot reach a log or audit row. */
+async function handleAccessKeyFail(
+  identifier: string,
+  currentFailCount: number,
+  ip: string,
+  req: NextRequest,
+  admin: { id: string; email: string }
+) {
+  const nextFail = currentFailCount + 1;
+  const durationMs = getLockDurationMs(nextFail);
+  const lockedUntil = new Date(Date.now() + durationMs);
+
+  logSecurityEvent({
+    event: "admin_mobile_access_key_fail",
+    ip,
+    adminId: admin.id,
+    failCount: nextFail,
+    lockDuration: formatLockDuration(durationMs),
+  });
+
+  await prisma.adminAuthLock.upsert({
+    where: { identifier },
+    update: { failCount: nextFail, lockedUntil, forever: false },
+    create: { identifier, failCount: nextFail, lockedUntil, forever: false },
+  });
+
+  await writeAuditForAdmin(admin, req, {
+    action: "admin_mobile_access_key_failed",
+    targetType: "Admin",
+    targetId: admin.id,
+    details: { failCount: nextFail },
   });
 }

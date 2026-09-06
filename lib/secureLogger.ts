@@ -30,8 +30,13 @@ type SecurityEvent =
   | "admin_logout"
   | "admin_turnstile_fail"
   | "admin_password_success_pending_2fa"
+  | "admin_password_success_pending_access_key"
+  | "admin_access_key_fail"
+  | "admin_access_key_success"
+  | "admin_access_key_not_configured"
   | "admin_mobile_login_fail"
   | "admin_mobile_password_success_pending_2fa"
+  | "admin_mobile_access_key_fail"
   | "admin_mobile_2fa_fail"
   | "admin_mobile_2fa_success";
 
@@ -51,6 +56,8 @@ const REDACTED_FIELDS = new Set([
   "token",
   "secret",
   "apiKey",
+  "accesskey",
+  "ADMIN_ACCESS_KEY_HASH",
   "webhookSecret",
   "telegramBotToken",
   "cookie",

@@ -11,6 +11,10 @@ import { ADMIN_COOKIE_NAME } from "@/lib/auth";
 import { getLockDurationMs, formatLockDuration } from "@/lib/lockPolicy";
 import { adminApiErrorResponse } from "@/lib/adminApiError";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import {
+  ACCESS_KEY_PENDING_COOKIE,
+  ACCESS_KEY_PENDING_TYPE,
+} from "@/lib/accessKey";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -310,88 +314,56 @@ export async function POST(req: NextRequest) {
     });
 
     logSecurityEvent({
-      event: admin.totpSecret
-        ? "admin_password_success_pending_2fa"
-        : "admin_login_success",
+      event: "admin_password_success_pending_access_key",
       ip,
       detail: email,
     });
 
-    // If 2FA (totpSecret) is configured, proceed to 2FA step
-    if (admin.totpSecret) {
-      const ttlSeconds = get2FATtlSeconds();
-      const pendingToken = jwt.sign(
-        {
-          type: "admin-2fa-pending",
-          adminId: String(admin.id),
-          email: admin.email,
-        },
-        getAdminJwtSecret(),
-        { expiresIn: ttlSeconds }
-      );
-
-      const res = NextResponse.json(
-        {
-          ok: true,
-          requires2FA: true,
-          email: admin.email,
-          message: "Password ត្រឹមត្រូវ។ សូមបញ្ចូលកូដ 2FA។",
-        },
-        { headers: { "Cache-Control": "no-store" } }
-      );
-
-      res.cookies.set(PENDING_2FA_COOKIE, pendingToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        path: "/",
-        maxAge: ttlSeconds,
-      });
-
-      // ✅ Password step succeeded — drop any stale lock hint.
-      clearLockHintCookie(res);
-
-      return res;
-    }
-
-    // If 2FA is NOT configured, log in directly!
-    const sessionToken = jwt.sign(
+    // Step 2 of 3. The access key is demanded whether or not TOTP is enrolled,
+    // and POST /api/admin/auth/access-key is the only issuer of the pending-2FA
+    // cookie that step 3 accepts — so neither later step can be reached from
+    // here.
+    const ttlSeconds = get2FATtlSeconds();
+    const pendingKeyToken = jwt.sign(
       {
+        type: ACCESS_KEY_PENDING_TYPE,
         adminId: String(admin.id),
         email: admin.email,
-        role: admin.role,
       },
       getAdminJwtSecret(),
-      { expiresIn: "7d" }
+      { expiresIn: ttlSeconds }
     );
 
     const res = NextResponse.json(
       {
         ok: true,
-        requires2FA: false,
+        requiresAccessKey: true,
         email: admin.email,
-        message: "ចូលប្រព័ន្ធបានជោគជ័យ!",
+        message: "Password ត្រឹមត្រូវ។ សូមបញ្ចូល Access Key។",
       },
       { headers: { "Cache-Control": "no-store" } }
     );
 
-    res.cookies.set(ADMIN_COOKIE_NAME, sessionToken, {
+    res.cookies.set(ACCESS_KEY_PENDING_COOKIE, pendingKeyToken, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
       path: "/",
-      maxAge: 7 * 24 * 60 * 60,
+      maxAge: ttlSeconds,
     });
 
+    // A pending-2FA cookie left over from an earlier attempt would otherwise
+    // let a fresh password step jump straight to step 3.
     res.cookies.set(PENDING_2FA_COOKIE, "", {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
       path: "/",
       maxAge: 0,
+      expires: new Date(0),
     });
 
-    // ✅ Login succeeded — drop any stale lock hint.
+    // ✅ Password step succeeded — drop any stale lock hint.
     clearLockHintCookie(res);
 
     return res;
@@ -402,7 +374,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ── DELETE: logout — clear both session cookies ───────────────────────────────
+// ── DELETE: logout — clear every login-stage cookie ──────────────────────────
 export async function DELETE() {
   const res = NextResponse.json(
     { ok: true },
@@ -419,6 +391,7 @@ export async function DELETE() {
   };
 
   res.cookies.set(ADMIN_COOKIE_NAME, "", cookieOpts);
+  res.cookies.set(ACCESS_KEY_PENDING_COOKIE, "", cookieOpts);
   res.cookies.set(PENDING_2FA_COOKIE, "", cookieOpts);
   res.cookies.set(LOCK_HINT_COOKIE, "", cookieOpts);
 
