@@ -215,7 +215,8 @@ export default function AdminSettingsPage() {
             </div>
             <div>
               <label className="label">Chat ID</label>
-              <input className="input font-mono text-xs" value={form.telegramChatId || ""} onChange={(e) => update("telegramChatId", e.target.value)} placeholder="-1001234567890" />
+              <input className="input font-mono text-xs" value={form.telegramChatId || ""} onChange={(e) => update("telegramChatId", e.target.value)} placeholder="-1001234567890, 123456789" />
+              <p className="mt-1 text-xs text-fox-muted">Separate several with commas to alert a group and a private chat at once. Group ids start with a minus sign, and the bot must be a member of the group.</p>
             </div>
           </div>
         </section>
