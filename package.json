@@ -6,11 +6,11 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && node scripts/patch-prisma.js",
     "prisma:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",

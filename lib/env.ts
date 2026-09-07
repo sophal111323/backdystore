@@ -10,6 +10,15 @@ if (typeof process !== "undefined") {
   }
 }
 
+if (typeof globalThis !== "undefined" && (!globalThis.crypto || !globalThis.crypto.subtle)) {
+  try {
+    const nodeCrypto = require("node:crypto");
+    if (nodeCrypto.webcrypto) {
+      (globalThis as any).crypto = nodeCrypto.webcrypto;
+    }
+  } catch {}
+}
+
 import { z } from "zod";
 
 function die(msg: string): never {
