@@ -6,7 +6,8 @@
 // npx prisma generate
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 
   // Vercel lambdas run on Amazon Linux 2023 (openssl 3.0).
   // Without this the generated engine binary may fail in production.

@@ -27,6 +27,7 @@ import {
   ACCESS_KEY_PENDING_TYPE,
   isAccessKeyConfigured,
   verifyAccessKey,
+  verifyAccessKeyDetailed,
 } from "@/lib/accessKey";
 
 export const dynamic = "force-dynamic";
@@ -222,10 +223,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const keyValid =
-      parsed.success && (await verifyAccessKey(parsed.data.accessKey));
+    if (!parsed.success) {
+      return handleKeyFail(req, admin, identifier, lock?.failCount ?? 0, ip);
+    }
 
-    if (!keyValid) {
+    const verification = await verifyAccessKeyDetailed(parsed.data.accessKey, admin.id);
+
+    if (!verification.valid) {
+      if (verification.reason === "expired") {
+        return NextResponse.json(
+          {
+            error: "Access Key នេះបានផុតកំណត់ហើយ (លើសពី 1 ម៉ោង)។ សូមចុចផ្ញើកូដសារជាថ្មី។",
+            expired: true,
+          },
+          { status: 400, headers: { "Cache-Control": "no-store" } }
+        );
+      }
       return handleKeyFail(req, admin, identifier, lock?.failCount ?? 0, ip);
     }
 

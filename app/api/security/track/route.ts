@@ -28,32 +28,36 @@ export async function POST(req: NextRequest) {
   const statusCode = body?.statusCode ? Number(body.statusCode) : null;
   const referer = body?.referer ? String(body.referer) : null;
 
-  const blocked = await prisma.blockedIdentity.findUnique({
-    where: {
-      type_value: {
-        type: "ip",
-        value: ip,
+  try {
+    const blocked = await prisma.blockedIdentity.findUnique({
+      where: {
+        type_value: {
+          type: "ip",
+          value: ip,
+        },
       },
-    },
-  });
+    });
 
-  await prisma.requestLog.create({
-    data: {
-      ip,
-      path,
-      method,
-      country,
-      isp,
-      provider: detectProvider(isp),
-      device,
-      os,
-      browser,
-      userAgent,
-      referer,
-      statusCode,
-      blocked: Boolean(blocked),
-    },
-  });
+    await prisma.requestLog.create({
+      data: {
+        ip,
+        path,
+        method,
+        country,
+        isp,
+        provider: detectProvider(isp),
+        device,
+        os,
+        browser,
+        userAgent,
+        referer,
+        statusCode,
+        blocked: Boolean(blocked),
+      },
+    });
+  } catch (err) {
+    console.warn("[track] Database error in security track:", err);
+  }
 
   return NextResponse.json({ ok: true });
 }

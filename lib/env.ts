@@ -1,7 +1,14 @@
 /**
- * lib/env.ts — Startup environment validation (Issue #10)
- * Validates all required env vars at import time; fails fast in production.
+ * Ensure process.versions.node exists for dependencies like Prisma in bundled environments
  */
+if (typeof process !== "undefined") {
+  if (!process.versions) {
+    (process as any).versions = {};
+  }
+  if (!process.versions.node) {
+    (process.versions as any).node = "22.0.0";
+  }
+}
 
 import { z } from "zod";
 

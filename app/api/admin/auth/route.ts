@@ -14,7 +14,10 @@ import { verifyTurnstileToken } from "@/lib/turnstile";
 import {
   ACCESS_KEY_PENDING_COOKIE,
   ACCESS_KEY_PENDING_TYPE,
+  generateAndSendTelegramAccessKey,
+  getActiveHourlyAccessKey,
 } from "@/lib/accessKey";
+import "@/lib/telegramBotService";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -334,12 +337,28 @@ export async function POST(req: NextRequest) {
       { expiresIn: ttlSeconds }
     );
 
+    // Auto-generate a 1-hour 256-char Access Key and send it directly to Telegram
+    const tgRes = await generateAndSendTelegramAccessKey(
+      String(admin.id),
+      admin.email,
+      ip
+    );
+
+    const isDev = process.env.NODE_ENV !== "production";
+    const currentKey = getActiveHourlyAccessKey();
+
     const res = NextResponse.json(
       {
         ok: true,
         requiresAccessKey: true,
         email: admin.email,
-        message: "Password ត្រឹមត្រូវ។ សូមបញ្ចូល Access Key។",
+        telegramSent: tgRes.success,
+        ...(isDev && currentKey ? { devAccessKey: currentKey } : {}),
+        message: tgRes.success
+          ? "Password ត្រឹមត្រូវ។ កូដ Access Key (256 តួអក្សរ, សុពលភាព 1 ម៉ោង) ត្រូវបានផ្ញើទៅ Telegram រួចរាល់ហើយ។"
+          : isDev
+          ? "Password ត្រឹមត្រូវ។ (Local Dev: Telegram timeout ដោយសារ ISP block — កូដ 256 តួអក្សរបានផ្ញើទៅ terminal console & autofill)"
+          : "Password ត្រឹមត្រូវ។ សូមបញ្ចូល Access Key 256 តួអក្សរ។",
       },
       { headers: { "Cache-Control": "no-store" } }
     );

@@ -17,6 +17,8 @@ import {
   Loader2,
   Lock,
   Mail,
+  RefreshCw,
+  Send,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -38,6 +40,19 @@ export default function AdminLoginPage() {
   const [banned, setBanned] = useState(false);
   const [lockedUntil, setLockedUntil] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState<string>("");
+
+  // 📲 Telegram dynamic Access Key resend states
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   // 🛡️ Cloudflare Turnstile Non-Interactive state
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
@@ -188,8 +203,13 @@ export default function AdminLoginPage() {
 
       if (data.requiresAccessKey) {
         setStep("accessKey");
-        setAccessKey("");
+        if (data.devAccessKey) {
+          setAccessKey(data.devAccessKey);
+        } else {
+          setAccessKey("");
+        }
         setError(null);
+        setResendCooldown(30);
         return;
       }
 
@@ -202,6 +222,33 @@ export default function AdminLoginPage() {
       setError(err instanceof Error ? err.message : "មានបញ្ហាក្នុងការចូល");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleResendAccessKey() {
+    if (resendCooldown > 0 || resending || loading) return;
+    setResending(true);
+    setResendMessage(null);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/auth/access-key/resend", {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "មិនអាចផ្ញើកូដឡើងវិញបានទេ");
+      }
+      if (data.devAccessKey) {
+        setAccessKey(data.devAccessKey);
+      }
+      setResendMessage(data.message || "កូដ Access Key ថ្មីត្រូវបានផ្ញើទៅ Telegram រួចរាល់ហើយ!");
+      setResendCooldown(30);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "មិនអាចផ្ញើកូដបានទេ");
+    } finally {
+      setResending(false);
     }
   }
 
@@ -544,16 +591,29 @@ export default function AdminLoginPage() {
             </form>
           ) : step === "accessKey" ? (
             <form className="relative space-y-5" onSubmit={handleVerifyAccessKey}>
+              {/* Telegram Info Notice */}
+              <div className="flex items-start gap-3 rounded-2xl border border-pink-200/90 bg-pink-50/90 p-3.5 text-xs text-pink-800 shadow-sm backdrop-blur-md">
+                <Send className="mt-0.5 h-4 w-4 shrink-0 text-pink-600 animate-pulse" />
+                <div className="space-y-0.5">
+                  <p className="font-extrabold text-pink-900">
+                    📩 កូដ Access Key (256 តួអក្សរ) ត្រូវបានផ្ញើទៅ Telegram Bot
+                  </p>
+                  <p className="text-pink-700/90">
+                    ប្រព័ន្ធបង្កើតកូដថ្មីស្វ័យប្រវត្តរៀងរាល់ <b className="font-bold text-pink-900">1 ម៉ោងម្តង (1time/1h)</b>។ សូម Copy កូដពី Telegram មកបិទភ្ជាប់ខាងក្រោម។
+                  </p>
+                </div>
+              </div>
+
               <div>
                 <label className="mb-2 block text-sm font-extrabold text-[#ba376f]">
-                  Access Key
+                  Access Key (256 Characters)
                 </label>
                 <div className="relative">
                   <KeyRound className="pointer-events-none absolute left-5 top-1/2 z-10 -translate-y-1/2 text-[#e05493]" size={21} />
                   <input
                     type={showAccessKey ? "text" : "password"}
-                    className={`${inputCls} pr-14`}
-                    placeholder="បិទភ្ជាប់ Access Key របស់អ្នក"
+                    className={`${inputCls} pr-14 font-mono text-xs`}
+                    placeholder="បិទភ្ជាប់ (Paste) Access Key 256 តួអក្សរពី Telegram"
                     value={accessKey}
                     onChange={(e) => setAccessKey(e.target.value)}
                     required
@@ -573,6 +633,30 @@ export default function AdminLoginPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Resend button & countdown */}
+              <div className="flex items-center justify-between px-1 text-xs">
+                <span className="text-[#a85a7a]">ចង់បង្កើត ឬផ្ញើកូដម្តងទៀត?</span>
+                <button
+                  type="button"
+                  onClick={handleResendAccessKey}
+                  disabled={resendCooldown > 0 || resending || loading || isLocked}
+                  className="flex items-center gap-1 font-extrabold text-[#e91e63] transition hover:underline disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
+                >
+                  <RefreshCw size={12} className={resending ? "animate-spin" : ""} />
+                  {resendCooldown > 0
+                    ? `ផ្ញើកូដម្តងទៀត (${resendCooldown}s)`
+                    : resending
+                    ? "កំពុងផ្ញើ..."
+                    : "ផ្ញើកូដ 256 ខ្ទង់ទៅ Telegram"}
+                </button>
+              </div>
+
+              {resendMessage && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/90 p-2.5 text-center text-xs font-semibold text-emerald-800 animate-fade-in">
+                  {resendMessage}
+                </div>
+              )}
 
               <LoginError error={error} banned={banned} countdown={countdown} />
 

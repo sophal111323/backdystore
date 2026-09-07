@@ -60,8 +60,11 @@ export async function checkRateLimitDb(
 
     return true;
   } catch (err) {
-    // ✅ Fail-closed: block request ពេល DB មិន available
-    // មិន fallback ទៅ memory ទេ — ការពារ bypass after server restart
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[rateLimit] DB unavailable in dev mode, falling back to memory:", err);
+      return checkRateLimitMemory(key, max, windowMs);
+    }
+    // Fail-closed in production: block request when DB is unavailable
     console.error("[rateLimit] DB error, blocking as precaution:", err);
     logSecurityEvent({
       event: "rate_limit_exceeded",

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { safeFetch } from "@/lib/safeFetch";
 
 type TurnstileKind = "public" | "admin";
 
@@ -95,7 +96,7 @@ export async function verifyTurnstileToken({
   let data: TurnstileResponse;
 
   try {
-    const res = await fetch(
+    const res = await safeFetch(
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
       {
         method: "POST",
