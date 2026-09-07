@@ -115,7 +115,7 @@ export async function verifyTurnstileToken({
   }
 
   if (!data.success) {
-    console.warn("Turnstile failed:", data["error-codes"]);
+    console.warn("Turnstile failed:", data["error-codes"], "hostname:", data.hostname);
     return false;
   }
 
@@ -139,7 +139,10 @@ export async function verifyTurnstileToken({
     data.hostname &&
     !allowedHostnames.includes(data.hostname)
   ) {
-    console.warn("Turnstile hostname mismatch:", data.hostname);
+    if (!isProduction && (data.hostname === "localhost" || data.hostname === "127.0.0.1" || data.hostname.startsWith("192.168."))) {
+      return true;
+    }
+    console.warn("Turnstile hostname mismatch:", data.hostname, "allowed hostnames:", allowedHostnames);
     return false;
   }
 

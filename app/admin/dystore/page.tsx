@@ -182,7 +182,9 @@ export default function AdminLoginPage() {
       if (res.status === 403) {
         turnstileRef.current?.reset();
         setTurnstileToken(null);
-        setBanned(true);
+        if (data.banned || data.forever) {
+          setBanned(true);
+        }
         setError(data.error || "គណនីត្រូវបាន lock ជាអចិន្ត្រៃយ៍");
         return;
       }
@@ -271,7 +273,9 @@ export default function AdminLoginPage() {
       const message = data.error || data.message || "";
 
       if (res.status === 403) {
-        setBanned(true);
+        if (data.banned || data.forever) {
+          setBanned(true);
+        }
         setError(message || "គណនីត្រូវបានផ្អាក");
         return;
       }
