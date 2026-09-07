@@ -10,6 +10,12 @@ if (typeof process !== "undefined") {
   }
 }
 
+if (typeof globalThis !== "undefined") {
+  if (typeof (globalThis as any).DEBUG !== "string") {
+    (globalThis as any).DEBUG = "";
+  }
+}
+
 if (typeof globalThis !== "undefined" && (!globalThis.crypto || !globalThis.crypto.subtle)) {
   try {
     const nodeCrypto = require("node:crypto");
