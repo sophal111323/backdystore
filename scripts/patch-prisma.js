@@ -35,3 +35,9 @@ for (const file of files) {
   }
 }
 
+try {
+  require("./patch-next");
+} catch (e) {
+  console.warn("[patch-prisma] patch-next warning:", e.message);
+}
+

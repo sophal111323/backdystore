@@ -7,7 +7,18 @@ export function generateOrderNumber(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
   const bytes = new Uint8Array(length);
-  globalThis.crypto.getRandomValues(bytes);
+  if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    try {
+      const nodeCrypto = require("node:crypto");
+      nodeCrypto.randomFillSync(bytes);
+    } catch {
+      for (let i = 0; i < length; i++) {
+        bytes[i] = Math.floor(Math.random() * 256);
+      }
+    }
+  }
 
   let randomPart = "";
 
