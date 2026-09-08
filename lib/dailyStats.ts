@@ -100,7 +100,7 @@ export async function getDailyDashboardStats(range: DayRange) {
         product: { select: { name: true, amount: true, bonus: true } },
       },
       orderBy: { paidAt: "desc" },
-      take: 50,
+      take: 500,
     }),
     prisma.order.findMany({
       where: whereToday,

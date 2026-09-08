@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getDailyDashboardStats, getPreviousCambodiaDayRange } from "@/lib/dailyStats";
-import { escapeHtml, notifyTelegram } from "@/lib/telegram";
+import { escapeHtml, notifyTelegram, sendTelegramDocument } from "@/lib/telegram";
+import { generatePaidReadyPdf } from "@/lib/reports/paidReadyPdf";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,21 +15,6 @@ function line(value: string | null | undefined) {
   return escapeHtml(value || "-");
 }
 
-function paidOrderText(order: any, index: number) {
-  const pkg = order.product.bonus > 0
-    ? `${order.product.name} (${order.product.amount}+${order.product.bonus})`
-    : order.product.name;
-
-  return [
-    `${index + 1}. <b>${line(order.game.name)}</b>`,
-    `Order: <code>${line(order.orderNumber)}</code>`,
-    `IP: <code>${line(order.ipAddress || "unknown")}</code>`,
-    `ID: <code>${line(order.playerUid)}</code>`,
-    `Package: ${line(pkg)}`,
-    `Amount: <b>${money(order.amountUsd)}</b>`,
-    `Status: ${line(order.status)}`,
-  ].join("\n");
-}
 
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
@@ -110,24 +96,35 @@ export async function GET(req: NextRequest) {
 
   if (stats.paidOrders.length === 0) {
     messages.push(`✅ <b>Paid Ready Details</b>\nNo paid ready orders for ${line(stats.range.label)}.`);
-  } else {
-    const chunkSize = 8;
-    for (let i = 0; i < stats.paidOrders.length; i += chunkSize) {
-      const chunk = stats.paidOrders.slice(i, i + chunkSize);
-      messages.push(
-        [
-          `✅ <b>Paid Ready Details</b> (${i + 1}-${i + chunk.length}/${stats.paidOrders.length})`,
-          "",
-          chunk.map((order, offset) => paidOrderText(order, i + offset)).join("\n\n"),
-        ].join("\n")
-      );
-    }
   }
 
   let sent = true;
   for (const message of messages) {
     const ok = await notifyTelegram(message);
     if (!ok) sent = false;
+  }
+
+  if (stats.paidOrders.length > 0) {
+    try {
+      const pdfBuffer = await generatePaidReadyPdf({
+        dateLabel: stats.range.label,
+        orders: stats.paidOrders,
+        totalRevenueUsd: stats.paidRevenueUsd,
+      });
+
+      const safeDateStr = stats.range.label.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const filename = `Paid_Ready_Details_${safeDateStr}.pdf`;
+      const caption = `📄 <b>Paid Ready Details</b> (${stats.paidOrders.length} orders)\nDate: <b>${line(stats.range.label)}</b>\nTotal: <b>${money(stats.paidRevenueUsd)}</b>`;
+
+      const docOk = await sendTelegramDocument(pdfBuffer, filename, caption);
+      if (!docOk) {
+        sent = false;
+        console.warn("[daily-report] Failed to send Paid Ready PDF document to Telegram");
+      }
+    } catch (pdfErr) {
+      console.error("[daily-report] Error generating/sending Paid Ready PDF:", pdfErr);
+      sent = false;
+    }
   }
 
   await prisma.auditLog.create({

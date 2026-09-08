@@ -7,33 +7,45 @@ import { safeFetch } from "@/lib/safeFetch";
  * alert can reach a private chat and a group at the same time.
  * Safe to call from any server code — never throws.
  */
+async function getTelegramConfig() {
+  let token = process.env.TELEGRAM_BOT_TOKEN?.trim() || "";
+  let rawChatIds = process.env.TELEGRAM_CHAT_ID?.trim() || "";
+
+  // Quick lookup in DB if settings might override env (bounded to 1.5s so it never hangs)
+  try {
+    const dbPromise = prisma.settings.findUnique({ where: { id: 1 } });
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+    const settings = await Promise.race([dbPromise, timeoutPromise]);
+    if (settings?.telegramBotToken) token = settings.telegramBotToken.trim();
+    if (settings?.telegramChatId) rawChatIds = settings.telegramChatId.trim();
+  } catch {
+    // Use env values on DB error
+  }
+
+  const chatIds = rawChatIds
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  const apiBase = process.env.TELEGRAM_API_BASE?.trim() || "https://api.telegram.org";
+
+  return { token, chatIds, apiBase };
+}
+
+/**
+ * Send a Telegram message using the bot token + chat id(s) stored in Settings
+ * (falls back to env vars). The chat id accepts a comma-separated list, so one
+ * alert can reach a private chat and a group at the same time.
+ * Safe to call from any server code — never throws.
+ */
 export async function notifyTelegram(text: string): Promise<boolean> {
   try {
-    let token = process.env.TELEGRAM_BOT_TOKEN?.trim() || "";
-    let rawChatIds = process.env.TELEGRAM_CHAT_ID?.trim() || "";
-
-    // Quick lookup in DB if settings might override env (bounded to 1.5s so it never hangs)
-    try {
-      const dbPromise = prisma.settings.findUnique({ where: { id: 1 } });
-      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
-      const settings = await Promise.race([dbPromise, timeoutPromise]);
-      if (settings?.telegramBotToken) token = settings.telegramBotToken.trim();
-      if (settings?.telegramChatId) rawChatIds = settings.telegramChatId.trim();
-    } catch {
-      // Use env values on DB error
-    }
-
-    const chatIds = rawChatIds
-      .split(",")
-      .map((id) => id.trim())
-      .filter(Boolean);
+    const { token, chatIds, apiBase } = await getTelegramConfig();
 
     if (!token || chatIds.length === 0) {
       console.warn("[telegram] Warning: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing");
       return false;
     }
-
-    const apiBase = process.env.TELEGRAM_API_BASE?.trim() || "https://api.telegram.org";
 
     const sent = await Promise.all(
       chatIds.map(async (chatId) => {
@@ -77,6 +89,76 @@ export async function notifyTelegram(text: string): Promise<boolean> {
     return sent.some(Boolean);
   } catch (err) {
     console.warn("[telegram] error:", err);
+    return false;
+  }
+}
+
+/**
+ * Send a file document (e.g. PDF report) using Telegram Bot API's `sendDocument`.
+ * Sends to all configured chat IDs.
+ * Safe to call from any server code — never throws.
+ */
+export async function sendTelegramDocument(
+  fileBuffer: Buffer | Uint8Array,
+  filename: string,
+  caption?: string
+): Promise<boolean> {
+  try {
+    const { token, chatIds, apiBase } = await getTelegramConfig();
+
+    if (!token || chatIds.length === 0) {
+      console.warn("[telegram] Warning: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing");
+      return false;
+    }
+
+    const sent = await Promise.all(
+      chatIds.map(async (chatId) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout for document upload
+        try {
+          const formData = new FormData();
+          formData.append("chat_id", chatId);
+          if (caption) {
+            formData.append("caption", caption);
+            formData.append("parse_mode", "HTML");
+          }
+          const blob = new Blob([fileBuffer as any], { type: "application/pdf" });
+          formData.append("document", blob, filename);
+
+          const res = await safeFetch(`${apiBase}/bot${token}/sendDocument`, {
+            method: "POST",
+            body: formData,
+            signal: controller.signal,
+            cache: "no-store",
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!res.ok) {
+            const body = await res.text().catch(() => "");
+            console.warn(`[telegram] sendDocument to ${chatId} failed:`, res.status, body.slice(0, 200));
+            return false;
+          }
+          return true;
+        } catch (err: any) {
+          clearTimeout(timeoutId);
+          const isTimeout =
+            err?.name === "AbortError" ||
+            err?.cause?.code === "UND_ERR_CONNECT_TIMEOUT" ||
+            String(err).includes("Timeout");
+          if (isTimeout) {
+            console.warn(`[telegram] sendDocument to ${chatId} timed out.`);
+          } else {
+            console.warn(`[telegram] sendDocument to ${chatId} error:`, err?.message || err);
+          }
+          return false;
+        }
+      })
+    );
+
+    return sent.some(Boolean);
+  } catch (err) {
+    console.warn("[telegram] sendDocument error:", err);
     return false;
   }
 }
