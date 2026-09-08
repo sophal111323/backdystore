@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import { getCurrentAdmin } from "@/lib/auth";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -16,6 +16,18 @@ export default async function AdminLayout({
 }: {
   children: ReactNode;
 }) {
+  const headerList = await headers();
+  const pathname = headerList.get("x-pathname") || "";
+
+  // Login routes and honeypot route should never render the admin sidebar
+  if (
+    pathname === "/admin/login" ||
+    pathname === ADMIN_LOGIN_PATH ||
+    pathname === "/admin/dystore"
+  ) {
+    return <>{children}</>;
+  }
+
   const admin = await getCurrentAdmin();
 
   if (!admin) {

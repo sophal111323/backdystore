@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
-import { jwtVerify } from "jose";
 import { isOriginAllowedForApi } from "@/lib/originGuard";
 import { logSecurityEvent } from "@/lib/secureLogger";
+import { verifyAdminJwt } from "@/lib/edgeJwt";
 
 const SESSION_COOKIE = "admin_token";
 
@@ -46,29 +46,13 @@ function isAdminArea(pathname: string): boolean {
   );
 }
 
-function getSecret() {
+function isValidAdminToken(token?: string): boolean {
   const secret = process.env.ADMIN_JWT_SECRET;
-
-  if (!secret) {
-    return null;
-  }
-
-  return new TextEncoder().encode(secret);
-}
-
-async function isValidAdminToken(token?: string) {
-  const secret = getSecret();
-
   if (!token || !secret) {
     return false;
   }
 
-  try {
-    await jwtVerify(token, secret);
-    return true;
-  } catch {
-    return false;
-  }
+  return verifyAdminJwt(token, secret);
 }
 
 function parseUserAgent(userAgent: string) {
@@ -282,6 +266,7 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
 
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("x-pathname", pathname);
 
   // ✅ API origin guard (Edge-safe): browser calls to /api/* must be
   // same-origin or explicitly allowlisted via API_ALLOWED_ORIGINS /

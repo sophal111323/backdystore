@@ -308,8 +308,7 @@ export default function AdminLoginPage() {
       }
 
       localStorage.removeItem("admin_login_email");
-      router.push("/admin");
-      router.refresh();
+      window.location.href = "/admin";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Access key មិនត្រឹមត្រូវ");
     } finally {
@@ -372,8 +371,7 @@ export default function AdminLoginPage() {
       }
 
       localStorage.removeItem("admin_login_email");
-      router.push("/admin");
-      router.refresh();
+      window.location.href = "/admin";
     } catch (err) {
       setError(err instanceof Error ? err.message : "លេខកូដ 2FA មិនត្រឹមត្រូវ");
     } finally {
