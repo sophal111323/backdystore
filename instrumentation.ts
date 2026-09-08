@@ -1,3 +1,4 @@
+export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     if (typeof globalThis !== 'undefined' && (!globalThis.crypto || !globalThis.crypto.subtle)) {
       try {
