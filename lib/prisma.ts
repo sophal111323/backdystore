@@ -15,9 +15,7 @@ function getClient(): PrismaClient {
     const client = new PrismaClient({
       log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
     });
-    if (process.env.NODE_ENV !== "production") {
-      globalForPrisma.prisma = client;
-    }
+    globalForPrisma.prisma = client;
     return client;
   } catch (err: any) {
     console.error("[prisma] FATAL error creating PrismaClient:");
