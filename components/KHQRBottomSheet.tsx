@@ -216,7 +216,7 @@ export default function KHQRBottomSheet({
       }
 
       void pollPaymentStatus();
-    }, 10000);
+    }, 4000);
 
     return () => clearInterval(timer);
   }, [currentOrder.orderNumber, currentOrder.status]);

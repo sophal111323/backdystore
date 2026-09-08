@@ -10,7 +10,7 @@ import { logSecurityEvent } from "@/lib/secureLogger";
 import { ADMIN_COOKIE_NAME } from "@/lib/auth";
 import { getLockDurationMs, formatLockDuration } from "@/lib/lockPolicy";
 import { adminApiErrorResponse } from "@/lib/adminApiError";
-import { verifyTurnstileToken } from "@/lib/turnstile";
+import { verifyTurnstileTokenDetail } from "@/lib/turnstile";
 import {
   ACCESS_KEY_PENDING_COOKIE,
   ACCESS_KEY_PENDING_TYPE,
@@ -212,16 +212,20 @@ export async function POST(req: NextRequest) {
     }
 
     // 🛡️ Cloudflare Turnstile Bot Protection for Admin Login
-    const isBotChallengePassed = await verifyTurnstileToken({
+    const botCheck = await verifyTurnstileTokenDetail({
       req,
       token: parsed.data.turnstileToken,
       kind: "admin",
       expectedAction: "admin_login",
     });
 
-    if (!isBotChallengePassed) {
+    if (!botCheck.ok) {
+      console.warn("[Admin Login] Turnstile check failed:", botCheck);
       return NextResponse.json(
-        { error: "ការផ្ទៀងផ្ទាត់សុវត្ថិភាព Turnstile មិនជោគជ័យ។ សូមព្យាយាមម្តងទៀត។" },
+        {
+          error: `ការផ្ទៀងផ្ទាត់សុវត្ថិភាព Turnstile មិនជោគជ័យ (${botCheck.reason || "Verification error"})។ សូមព្យាយាមម្ដងទៀត។`,
+          detail: botCheck,
+        },
         { status: 403, headers: { "Cache-Control": "no-store" } }
       );
     }

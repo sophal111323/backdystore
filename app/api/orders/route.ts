@@ -6,7 +6,7 @@ import { z } from "zod";
 import { applyRateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getIp";
 import { withAdminAuth } from "@/lib/withAdminAuth";
-import { verifyTurnstileToken } from "@/lib/turnstile";
+import { verifyTurnstileTokenDetail } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -86,17 +86,19 @@ export async function POST(req: NextRequest) {
 
     // 🛡️ Cloudflare Turnstile Bot Validation:
     // Verify token BEFORE executing any database queries or external banking API calls
-    const isBotChallengePassed = await verifyTurnstileToken({
+    const botCheck = await verifyTurnstileTokenDetail({
       req,
       token: data.turnstileToken,
       kind: "public",
       expectedAction: "create_order",
     });
 
-    if (!isBotChallengePassed) {
+    if (!botCheck.ok) {
+      console.warn("[Orders API] Turnstile check failed:", botCheck);
       return NextResponse.json(
         {
-          error: "ការផ្ទៀងផ្ទាត់សុវត្ថិភាពមិនជោគជ័យ (Bot verification failed). សូម refresh ទំព័រ រួចសាកល្បងម្ដងទៀត។",
+          error: `ការផ្ទៀងផ្ទាត់សុវត្ថិភាពមិនជោគជ័យ (Bot verification failed): ${botCheck.reason || "Verification error"}. សូម refresh ទំព័រ រួចសាកល្បងម្ដងទៀត។`,
+          detail: botCheck,
         },
         { status: 403 }
       );

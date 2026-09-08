@@ -6,7 +6,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev",
     "build": "prisma generate && node scripts/patch-prisma.js && next build",
     "start": "next start",
     "lint": "next lint",

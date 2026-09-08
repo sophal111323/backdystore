@@ -13,6 +13,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSupplier, getTopupStatus } from "@/lib/topup";
 import { notifyTelegram, escapeHtml } from "@/lib/telegram";
+import { revalidateAdminChange } from "@/lib/adminRevalidate";
 
 export interface FulfillmentResult {
   success: boolean;
@@ -379,6 +380,11 @@ export async function refreshTopupStatus(orderNumber: string): Promise<Fulfillme
           `${escapeHtml(supplier.displayName)} ref: <code>${escapeHtml(remote.transactionId ?? reference)}</code> (status refresh)`
         )
       );
+      try {
+        revalidateAdminChange("orders", { orderNumber: order.orderNumber });
+      } catch {
+        /* ignore */
+      }
     }
 
     return { success: true, transactionId: remote.transactionId, status: "success" };

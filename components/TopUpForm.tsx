@@ -688,15 +688,15 @@ export default function TopUpForm({ game, products }: { game: Game; products: Pr
                 </span>
               </div>
 
-              {/* 🛡️ Cloudflare Turnstile Invisible Bot Protection */}
+              {/* 🛡️ Cloudflare Turnstile Bot Protection */}
               {turnstileSiteKey && (
-                <div className="hidden" aria-hidden="true">
+                <div className="mt-3 flex flex-col items-center justify-center">
                   <Turnstile
                     ref={turnstileRef}
                     siteKey={turnstileSiteKey}
                     options={{
-                      size: "invisible",
                       action: "create_order",
+                      theme: "light",
                     }}
                     onSuccess={(token) => {
                       setTurnstileToken(token);

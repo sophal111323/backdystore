@@ -14,6 +14,9 @@ import {
   getOrCreateHourlyAccessKey,
   ACCESS_KEY_TTL_MS,
 } from "./accessKey";
+import { prisma } from "@/lib/prisma";
+import { refreshTopupStatus } from "@/lib/fulfillment";
+import { syncSinglePendingOrder } from "@/lib/paymentSyncService";
 
 const state = (globalThis as unknown as {
   __telegramPollerRunning?: boolean;
@@ -93,7 +96,8 @@ export async function handleTelegramUpdate(update: any): Promise<void> {
 
   const chatId = String(msg.chat.id);
   const text = String(msg.text).trim();
-  const command = text.toLowerCase().split(/\s+/)[0];
+  const rawToken = text.toLowerCase().split(/\s+/)[0] || "";
+  const command = rawToken.split("@")[0].replace(/^\/+/, ""); // 'key', 'newkey', 'generate', 'status', etc.
 
   const authorizedChatIds = getAuthorizedChatIds();
   const isAuthorized =
@@ -117,16 +121,53 @@ export async function handleTelegramUpdate(update: any): Promise<void> {
       hour12: true,
     });
 
-  // /key or /getkey or "key"
+  // Generate a brand new 256-character key
   if (
-    command === "/key" ||
-    command === "/getkey" ||
+    command === "newkey" ||
+    command === "gen" ||
+    command === "generate" ||
+    command === "genkey" ||
+    command === "createkey"
+  ) {
+    const { key, expiresAt } = await getOrCreateHourlyAccessKey(
+      true,
+      "Admin បានវាយបញ្ជាបង្កើតកូដ 256 តួអក្សរថ្មីតាម Telegram"
+    );
+
+    const createdDate = new Date();
+    const expireDate = new Date(expiresAt);
+
+    const reply = [
+      `🆕 <b>DYTOPUP — Access Key ថ្មីស្រឡាង (256 Characters)</b>`,
+      ``,
+      `🔑 <b>កូដ Access Key 256 តួអក្សរថ្មីរបស់អ្នកគឺ៖</b>`,
+      `<code>${key}</code>`,
+      ``,
+      `<i>(ចុចលើកូដខាងលើដើម្បី Copy ទាំងអស់)</i>`,
+      ``,
+      `⏱️ <b>សុពលភាព៖</b> ១ ម៉ោង (1 Hour)`,
+      `🕒 <b>បង្កើតនៅ៖</b> ${phnomPenhTime(createdDate)}`,
+      `⏳ <b>ផុតកំណត់នៅ៖</b> ${phnomPenhTime(expireDate)}`,
+      `🔢 <b>ប្រវែង៖</b> 256 Characters`,
+      ``,
+      `⚠️ <i>កូដចាស់ត្រូវបានជំនួស។ សូមប្រើកូដថ្មីនេះដើម្បី Login ចូល Admin។</i>`,
+    ].join("\n");
+
+    await sendTelegramToChat(chatId, reply);
+    return;
+  }
+
+  // Get active 256-character key (or create one if expired)
+  if (
     command === "key" ||
-    command === "/key@dystore_bot"
+    command === "getkey" ||
+    command === "code" ||
+    command === "accesskey" ||
+    command === "token"
   ) {
     const { key, expiresAt, isNew } = await getOrCreateHourlyAccessKey(
       false,
-      "Admin បានវាយបញ្ជា /key ក្នុង Telegram"
+      "Admin បានវាយបញ្ជាស្នើសុំ /key ក្នុង Telegram"
     );
 
     const now = Date.now();
@@ -149,37 +190,7 @@ export async function handleTelegramUpdate(update: any): Promise<void> {
       `⏳ <b>ផុតកំណត់នៅ៖</b> ${phnomPenhTime(expireDate)}`,
       `🔢 <b>ប្រវែង៖</b> 256 Characters`,
       ``,
-      `💡 <i>វាយ <code>/newkey</code> ប្រសិនបើអ្នកចង់បង្កើតកូដ 256 តួអក្សរថ្មីភ្លាមៗ។</i>`,
-    ].join("\n");
-
-    await sendTelegramToChat(chatId, reply);
-    return;
-  }
-
-  // /newkey
-  if (command === "/newkey" || command === "/newkey@dystore_bot") {
-    const { key, expiresAt } = await getOrCreateHourlyAccessKey(
-      true,
-      "Admin បានវាយបញ្ជា /newkey បង្កើតកូដថ្មី"
-    );
-
-    const createdDate = new Date();
-    const expireDate = new Date(expiresAt);
-
-    const reply = [
-      `🆕 <b>DYTOPUP — Access Key ថ្មីស្រឡាង (256 Characters)</b>`,
-      ``,
-      `🔑 <b>កូដ Access Key ថ្មីរបស់អ្នកគឺ៖</b>`,
-      `<code>${key}</code>`,
-      ``,
-      `<i>(ចុចលើកូដខាងលើដើម្បី Copy ទាំងអស់)</i>`,
-      ``,
-      `⏱️ <b>សុពលភាព៖</b> ១ ម៉ោង (1 Hour)`,
-      `🕒 <b>បង្កើតនៅ៖</b> ${phnomPenhTime(createdDate)}`,
-      `⏳ <b>ផុតកំណត់នៅ៖</b> ${phnomPenhTime(expireDate)}`,
-      `🔢 <b>ប្រវែង៖</b> 256 Characters`,
-      ``,
-      `⚠️ <i>កូដចាស់ត្រូវបានជំនួស។ សូមប្រើកូដថ្មីនេះដើម្បី Login ចូល Admin។</i>`,
+      `💡 <i>វាយ <code>/newkey</code> ឬ <code>/generate</code> ប្រសិនបើអ្នកចង់បង្កើតកូដ 256 តួអក្សរថ្មីភ្លាមៗ។</i>`,
     ].join("\n");
 
     await sendTelegramToChat(chatId, reply);
@@ -187,7 +198,7 @@ export async function handleTelegramUpdate(update: any): Promise<void> {
   }
 
   // /status
-  if (command === "/status" || command === "/status@dystore_bot") {
+  if (command === "status") {
     const { expiresAt } = await getOrCreateHourlyAccessKey(false);
     const now = Date.now();
     const remainingMinutes = Math.max(0, Math.ceil((expiresAt - now) / 60000));
@@ -208,16 +219,11 @@ export async function handleTelegramUpdate(update: any): Promise<void> {
   }
 
   // /help or /start
-  if (
-    command === "/help" ||
-    command === "/start" ||
-    command === "/help@dystore_bot" ||
-    command === "/start@dystore_bot"
-  ) {
+  if (command === "help" || command === "start") {
     const reply = [
       `👋 <b>សួស្តី Admin! ស្វាគមន៍មកកាន់ DYTOPUP Bot</b>`,
       ``,
-      `Bot នេះអាចជួយអ្នកបង្កើត និងទាញយក Access Key ចូល Admin យ៉ាងរហ័ស៖`,
+      `Bot នេះអាចជួយអ្នកបង្កើត និងទាញយក Access Key 256 Characters ចូល Admin យ៉ាងរហ័ស៖`,
       ``,
       `👉 <code>/key</code> — ទាញយកកូដ Access Key 256 តួអក្សរបច្ចុប្បន្ន`,
       `👉 <code>/newkey</code> — បង្កើតកូដ Access Key 256 តួអក្សរថ្មីភ្លាមៗ`,
@@ -231,10 +237,80 @@ export async function handleTelegramUpdate(update: any): Promise<void> {
     return;
   }
 
+  // Check / refresh order command (e.g. /check RT-..., /order RT-..., or typing #RT-...)
+  const isOrderQuery =
+    command === "check" ||
+    command === "order" ||
+    /^(RT-|ORD-)/i.test(rawToken.replace(/^#/, ""));
+
+  if (isOrderQuery) {
+    const textTokens = text.split(/\s+/);
+    let orderNum = textTokens[1] || textTokens[0] || rawToken;
+    orderNum = orderNum.replace(/^#/, "").trim().toUpperCase();
+
+    if (orderNum.length >= 5) {
+      const order = await prisma.order.findUnique({
+        where: { orderNumber: orderNum },
+        include: { game: true, product: true },
+      });
+
+      if (!order) {
+        await sendTelegramToChat(
+          chatId,
+          `⚠️ <b>រកមិនឃើញ Order: #${escapeHtml(orderNum)}</b>\n\nសូមពិនិត្យមើលលេខ Order ឡើងវិញ។`
+        );
+        return;
+      }
+
+      // If PROCESSING, live check provider status right away
+      if (order.status === "PROCESSING" && order.topupProviderRef) {
+        await refreshTopupStatus(order.orderNumber);
+      } else if (order.status === "PENDING" && order.paymentRef) {
+        await syncSinglePendingOrder(order.id);
+      }
+
+      // Fetch latest order state
+      const current =
+        (await prisma.order.findUnique({
+          where: { id: order.id },
+          include: { game: true, product: true },
+        })) || order;
+
+      const statusIcon =
+        current.status === "DELIVERED"
+          ? "✅"
+          : current.status === "PAID"
+          ? "💰"
+          : current.status === "PROCESSING"
+          ? "⏳"
+          : current.status === "PENDING"
+          ? "🟡"
+          : "⚠️";
+
+      const reply = [
+        `📦 <b>Order Status: #${escapeHtml(current.orderNumber)}</b>`,
+        ``,
+        `🎮 <b>ហ្គេម៖</b> ${escapeHtml(current.game.name)} – ${escapeHtml(current.product.name)}`,
+        `👤 <b>UID:</b> <code>${escapeHtml(current.playerUid)}</code>`,
+        `💵 <b>តម្លៃ៖</b> $${current.amountUsd.toFixed(2)}`,
+        `📊 <b>ស្ថានភាព៖</b> ${statusIcon} <b>${current.status}</b>`,
+        current.topupProviderRef
+          ? `🔗 <b>Ref:</b> <code>${escapeHtml(current.topupProviderRef)}</code>`
+          : "",
+        current.deliveryNote ? `📝 <i>${escapeHtml(current.deliveryNote)}</i>` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      await sendTelegramToChat(chatId, reply);
+      return;
+    }
+  }
+
   // Default fallback for any other message
   await sendTelegramToChat(
     chatId,
-    `🤖 <b>DYTOPUP Bot</b>\n\nសូមវាយ <code>/key</code> ដើម្បីទទួល Access Key 256 តួអក្សរ ឬ <code>/help</code> ដើម្បីមើលបញ្ជាទាំងអស់។`
+    `🤖 <b>DYTOPUP Bot</b>\n\nសូមវាយ <code>/key</code> ដើម្បីទទួល Access Key 256 តួអក្សរ, <code>/newkey</code> ដើម្បីបង្កើតកូដថ្មី, ឬវាយលេខ <b>#OrderNumber</b> ដើម្បីពិនិត្យស្ថានភាព Order។`
   );
 }
 
