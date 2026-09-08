@@ -170,9 +170,13 @@ async function trackRequest(req: NextRequest, pathname: string) {
 }
 
 function generateNonce(): string {
-  return btoa(
-    String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16)))
-  );
+  if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(bytes);
+    return btoa(String.fromCharCode(...bytes));
+  }
+  const fallback = Array.from({ length: 16 }, () => Math.floor(Math.random() * 256));
+  return btoa(String.fromCharCode(...fallback));
 }
 
 function buildCspHeader(nonce: string): string {
