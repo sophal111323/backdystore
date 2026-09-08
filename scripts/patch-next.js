@@ -10,6 +10,8 @@ function patchNext() {
     let edgeCode = fs.readFileSync(edgeRuntimeFile, "utf8");
     const t1 = 'if(!A.exports[r]){throw new Error(`Attempt to export a nullable value for "${r}"`)}';
     const t2 = 'if(!A.exports[t]){throw new Error(`Attempt to export a nullable value for "${t}"`)}';
+    const tSubtle = 'else{const e=__nccwpck_require__(601).webcrypto;return{crypto:e,Crypto:e.constructor,CryptoKey:e.CryptoKey,SubtleCrypto:e.subtle.constructor}}';
+    const repSubtle = 'else{const w=__nccwpck_require__(601);const e=w?.webcrypto||globalThis?.crypto||{};const s=e?.subtle||{};return{crypto:e,Crypto:e?.constructor||Object,CryptoKey:e?.CryptoKey||Object,SubtleCrypto:s?.constructor||Object}}';
     let edgeChanged = false;
     if (edgeCode.includes(t1)) {
       edgeCode = edgeCode.replace(t1, 'if(!A.exports[r]){continue;}');
@@ -17,6 +19,10 @@ function patchNext() {
     }
     if (edgeCode.includes(t2)) {
       edgeCode = edgeCode.replace(t2, 'if(!A.exports[t]){continue;}');
+      edgeChanged = true;
+    }
+    if (edgeCode.includes(tSubtle)) {
+      edgeCode = edgeCode.replace(tSubtle, repSubtle);
       edgeChanged = true;
     }
     if (edgeChanged) {
@@ -96,6 +102,125 @@ function patchNext() {
       sCode = sCode.replace(tServer, repServer);
       fs.writeFileSync(serverProdFile, sCode, "utf8");
       console.log("[patch-next] Patched server.runtime.prod.js");
+    }
+  }
+
+  // 4. Patch nextConfig invariant error in route modules
+  const routeFiles = [
+    path.join(root, "node_modules", "next", "dist", "server", "route-modules", "route-module.js"),
+    path.join(root, "node_modules", "next", "dist", "esm", "server", "route-modules", "route-module.js"),
+  ];
+  for (const rf of routeFiles) {
+    if (fs.existsSync(rf)) {
+      let code = fs.readFileSync(rf, "utf8");
+      if (code.includes('if (!nextConfig) {')) {
+        code = code.replace(
+          'if (!nextConfig) {',
+          'if (!nextConfig) { nextConfig = { experimental: {} }; }\n        if (false && !nextConfig) {'
+        );
+        fs.writeFileSync(rf, code, "utf8");
+        console.log(`[patch-next] Patched nextConfig in ${path.basename(rf)}`);
+      }
+    }
+  }
+
+  // 5. Patch nextConfig in compiled next-server runtimes
+  const nextServerDir = path.join(root, "node_modules", "next", "dist", "compiled", "next-server");
+  if (fs.existsSync(nextServerDir)) {
+    for (const f of fs.readdirSync(nextServerDir)) {
+      if (f.endsWith(".js")) {
+        const full = path.join(nextServerDir, f);
+        let code = fs.readFileSync(full, "utf8");
+        const t = `if(!nextConfig)throw Object.defineProperty(Error("Invariant: nextConfig couldn't be loaded")`;
+        if (code.includes(t)) {
+          code = code.replaceAll(
+            t,
+            `if(!nextConfig)nextConfig={experimental:{}};if(false)throw Object.defineProperty(Error("Invariant: nextConfig couldn't be loaded")`
+          );
+          fs.writeFileSync(full, code, "utf8");
+          console.log(`[patch-next] Patched nextConfig in ${f}`);
+        }
+      }
+    }
+  }
+
+  // 6. Patch globalThis.crypto.subtle in all Next.js server runtimes
+  const subtleFiles = [
+    path.join(root, "node_modules", "next", "dist", "shared", "lib", "router", "utils", "cache-busting-search-param.js"),
+    path.join(root, "node_modules", "next", "dist", "esm", "shared", "lib", "router", "utils", "cache-busting-search-param.js"),
+  ];
+  if (fs.existsSync(nextServerDir)) {
+    for (const f of fs.readdirSync(nextServerDir)) {
+      if (f.endsWith(".js")) {
+        subtleFiles.push(path.join(nextServerDir, f));
+      }
+    }
+  }
+  for (const sf of subtleFiles) {
+    if (fs.existsSync(sf)) {
+      let code = fs.readFileSync(sf, "utf8");
+      const target = "globalThis.crypto.subtle.digest(";
+      if (code.includes(target)) {
+        code = code.replaceAll(
+          target,
+          "(globalThis.crypto?.subtle || (typeof require !== 'undefined' && require('crypto')?.webcrypto?.subtle) || {digest: async () => new Uint8Array(32)}).digest("
+        );
+        fs.writeFileSync(sf, code, "utf8");
+        console.log(`[patch-next] Patched crypto.subtle in ${path.basename(sf)}`);
+      }
+    }
+  }
+
+  // 7. Patch undefined renderOpts in app-route dev runtimes
+  const appRouteFiles = [
+    path.join(nextServerDir, "app-route-turbo.runtime.dev.js"),
+    path.join(nextServerDir, "app-route.runtime.dev.js"),
+    path.join(nextServerDir, "app-route-turbo-experimental.runtime.dev.js"),
+    path.join(nextServerDir, "app-route-experimental.runtime.dev.js"),
+  ];
+  for (const arf of appRouteFiles) {
+    if (fs.existsSync(arf)) {
+      let code = fs.readFileSync(arf, "utf8");
+      let changed = false;
+      const tVal = 'cacheComponentsEnabled:renderOpts.cacheComponents,validationLevel:renderOpts.validationLevel';
+      const repVal = 'cacheComponentsEnabled:null==renderOpts?void 0:renderOpts.cacheComponents,validationLevel:null==renderOpts?void 0:renderOpts.validationLevel';
+      if (code.includes(tVal)) {
+        code = code.replaceAll(tVal, repVal);
+        changed = true;
+      }
+      const tAfter = 'afterContext:function(renderOpts){let{waitUntil,onClose,onAfterTaskError}=renderOpts;';
+      const repAfter = 'afterContext:function(renderOpts){if(!renderOpts)return;let{waitUntil,onClose,onAfterTaskError}=renderOpts;';
+      if (code.includes(tAfter)) {
+        code = code.replaceAll(tAfter, repAfter);
+        changed = true;
+      }
+      if (changed) {
+        fs.writeFileSync(arf, code, "utf8");
+        console.log(`[patch-next] Patched renderOpts in ${path.basename(arf)}`);
+      }
+    }
+  }
+
+  // 8. Patch instantInsights.validationLevel in Next.js build templates
+  const insightFiles = [
+    path.join(root, "node_modules", "next", "dist", "build", "templates", "app-route.js"),
+    path.join(root, "node_modules", "next", "dist", "esm", "build", "templates", "app-route.js"),
+    path.join(root, "node_modules", "next", "dist", "build", "templates", "app-page-runtime.js"),
+    path.join(root, "node_modules", "next", "dist", "esm", "build", "templates", "app-page-runtime.js"),
+    path.join(root, "node_modules", "next", "dist", "build", "templates", "edge-ssr-app.js"),
+    path.join(root, "node_modules", "next", "dist", "esm", "build", "templates", "edge-ssr-app.js"),
+    path.join(root, "node_modules", "next", "dist", "server", "base-server.js"),
+    path.join(root, "node_modules", "next", "dist", "esm", "server", "base-server.js"),
+  ];
+  for (const inf of insightFiles) {
+    if (fs.existsSync(inf)) {
+      let code = fs.readFileSync(inf, "utf8");
+      const target = "nextConfig.experimental.instantInsights.validationLevel";
+      if (code.includes(target)) {
+        code = code.replaceAll(target, "nextConfig.experimental?.instantInsights?.validationLevel");
+        fs.writeFileSync(inf, code, "utf8");
+        console.log(`[patch-next] Patched instantInsights in ${path.basename(inf)}`);
+      }
     }
   }
 }

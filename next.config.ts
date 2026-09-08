@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["pdfkit", "fontkit"],
   outputFileTracingRoot: path.resolve(__dirname),
   poweredByHeader: false,
+  experimental: {
+    instantInsights: {
+      validationLevel: "none",
+    },
+  } as any,
 
   images: {
     remotePatterns: [

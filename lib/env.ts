@@ -14,6 +14,26 @@ if (typeof globalThis !== "undefined") {
   if (typeof (globalThis as any).DEBUG !== "string") {
     (globalThis as any).DEBUG = "";
   }
+  if (!globalThis.crypto || !globalThis.crypto.subtle) {
+    try {
+      const nodeCrypto = require("node:crypto");
+      if (nodeCrypto?.webcrypto) {
+        if (!globalThis.crypto) {
+          (globalThis as any).crypto = nodeCrypto.webcrypto;
+        } else if (!globalThis.crypto.subtle) {
+          try {
+            Object.defineProperty(globalThis.crypto, "subtle", {
+              value: nodeCrypto.webcrypto.subtle,
+              writable: true,
+              configurable: true,
+            });
+          } catch {
+            (globalThis.crypto as any).subtle = nodeCrypto.webcrypto.subtle;
+          }
+        }
+      }
+    } catch {}
+  }
 }
 
 

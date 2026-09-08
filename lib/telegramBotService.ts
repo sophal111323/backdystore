@@ -319,6 +319,10 @@ export async function handleTelegramUpdate(update: any): Promise<void> {
  * Runs in background without blocking server operations.
  */
 export function startTelegramBotPoller(): void {
+  if (typeof window !== "undefined") return;
+  if (process.env.NODE_ENV === "development" && process.env.ENABLE_LOCAL_WORKERS !== "true") {
+    return;
+  }
   const token = getBotToken();
   if (!token) return;
 

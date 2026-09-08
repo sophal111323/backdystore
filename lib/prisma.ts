@@ -11,8 +11,18 @@ function getClient(): PrismaClient {
     return globalForPrisma.prisma;
   }
 
+  let dbUrl = process.env.DATABASE_URL;
+
+  if (
+    process.env.NODE_ENV === "development" &&
+    dbUrl?.includes("dystore-ozbiosqbddea.db.upclouddatabases.com:11569")
+  ) {
+    dbUrl = dbUrl.replace("dystore-ozbiosqbddea.db.upclouddatabases.com:11569", "127.0.0.1:11569");
+  }
+
   try {
     const client = new PrismaClient({
+      datasources: dbUrl ? { db: { url: dbUrl } } : undefined,
       log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
     });
     globalForPrisma.prisma = client;

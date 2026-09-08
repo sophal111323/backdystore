@@ -213,6 +213,9 @@ const state = globalThis as unknown as { __paymentSyncWorkerRunning?: boolean };
 
 export function startPendingOrdersSyncWorker(): void {
   if (typeof window !== "undefined") return;
+  if (process.env.NODE_ENV === "development" && process.env.ENABLE_LOCAL_WORKERS !== "true") {
+    return;
+  }
   if (state.__paymentSyncWorkerRunning) return;
   state.__paymentSyncWorkerRunning = true;
 
